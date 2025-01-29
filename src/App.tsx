@@ -4,7 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext"; // Import de useAuth pour vérifier l'authentification
-import Index from "./pages/Index";
+import HomePage from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
@@ -13,15 +13,44 @@ import ChatRoom from "./pages/chat/ChatRoom";
 // Utilisation de QueryClient pour gérer les requêtes asynchrones
 const queryClient = new QueryClient();
 
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <TooltipProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/auth/login" element={<Login />} />
+              <Route path="/auth/register" element={<Register />} />
+              <Route 
+                path="/chat/:roomId" 
+                element={
+                  <ProtectedRoute>
+                    <ChatRoom />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+          <Toaster />
+          <Sonner />
+        </TooltipProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+}
+
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
-  const { isAuthenticated } = useAuth(); // Vérifie si l'utilisateur est authentifié
+  const { isAuthenticated } = useAuth() as unknown as { isAuthenticated: boolean };
   if (!isAuthenticated) {
     return <Navigate to="/auth/login" replace />;
   }
   return children;
 };
 
-const Index = () => {
+const LandingPage = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-r from-indigo-600 via-purple-500 to-indigo-600 text-white">
       <div className="text-center mb-8 max-w-2xl mx-auto">
@@ -111,6 +140,6 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default App;
 
 
