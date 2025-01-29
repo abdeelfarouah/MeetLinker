@@ -44,21 +44,33 @@ const ChatRoom = () => {
   // Gestion de la vidéo
   const startVideo = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: true, 
-        audio: true 
-      });
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        setIsVideoOn(true);
-        // Démarrer la reconnaissance vocale quand la vidéo démarre
-        const recognition = startSpeechRecognition();
-        if (!recognition) {
-          toast({
-            title: "Attention",
-            description: "La reconnaissance vocale n'est pas supportée par votre navigateur",
-            variant: "destructive",
-          });
+      if (isVideoOn) {
+        // Arrêter la vidéo
+        if (videoRef.current?.srcObject) {
+          const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
+          tracks.forEach(track => track.stop());
+          videoRef.current.srcObject = null;
+        }
+        setIsVideoOn(false);
+      } else {
+        // Démarrer la vidéo
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          video: true, 
+          audio: true 
+        });
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          setIsVideoOn(true);
+          
+          // Démarrer la reconnaissance vocale
+          const recognition = startSpeechRecognition();
+          if (!recognition) {
+            toast({
+              title: "Attention",
+              description: "La reconnaissance vocale n'est pas supportée par votre navigateur",
+              variant: "destructive",
+            });
+          }
         }
       }
     } catch (error) {
@@ -74,22 +86,33 @@ const ChatRoom = () => {
   // Gestion du partage d'écran
   const startScreenShare = async () => {
     try {
-      const stream = await navigator.mediaDevices.getDisplayMedia({ 
-        video: true,
-        audio: true
-      });
-      if (screenVideoRef.current) {
-        screenVideoRef.current.srcObject = stream;
-        setIsScreenSharing(true);
-      }
-      
-      // Arrêter le partage d'écran quand l'utilisateur arrête le partage
-      stream.getVideoTracks()[0].onended = () => {
-        setIsScreenSharing(false);
-        if (screenVideoRef.current) {
+      if (isScreenSharing) {
+        // Arrêter le partage d'écran
+        if (screenVideoRef.current?.srcObject) {
+          const tracks = (screenVideoRef.current.srcObject as MediaStream).getTracks();
+          tracks.forEach(track => track.stop());
           screenVideoRef.current.srcObject = null;
         }
-      };
+        setIsScreenSharing(false);
+      } else {
+        // Démarrer le partage d'écran
+        const stream = await navigator.mediaDevices.getDisplayMedia({ 
+          video: true,
+          audio: true
+        });
+        if (screenVideoRef.current) {
+          screenVideoRef.current.srcObject = stream;
+          setIsScreenSharing(true);
+        }
+        
+        // Arrêter le partage d'écran quand l'utilisateur arrête le partage
+        stream.getVideoTracks()[0].onended = () => {
+          setIsScreenSharing(false);
+          if (screenVideoRef.current) {
+            screenVideoRef.current.srcObject = null;
+          }
+        };
+      }
     } catch (error) {
       console.error("Erreur lors du partage d'écran:", error);
       toast({
@@ -147,21 +170,24 @@ const ChatRoom = () => {
           {/* Zone de vidéo et partage d'écran */}
           <div className="grid grid-cols-2 gap-4 mb-4">
             {isVideoOn && (
-              <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                muted
-                className="w-full rounded-lg bg-black"
-              />
+              <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+              </div>
             )}
             {isScreenSharing && (
-              <video
-                ref={screenVideoRef}
-                autoPlay
-                playsInline
-                className="w-full rounded-lg bg-black"
-              />
+              <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
+                <video
+                  ref={screenVideoRef}
+                  autoPlay
+                  playsInline
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+              </div>
             )}
           </div>
 
