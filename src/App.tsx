@@ -8,6 +8,7 @@ import NotFound from "./pages/NotFound";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import ChatRoom from "./pages/chat/ChatRoom";
+import PreEntranceCheck from "./pages/chat/PreEntranceCheck";
 
 const queryClient = new QueryClient();
 
@@ -21,6 +22,14 @@ function App() {
               <Route path="/" element={<LandingPage />} />
               <Route path="/auth/login" element={<Login />} />
               <Route path="/auth/register" element={<Register />} />
+              <Route 
+                path="/pre-entrance/:roomId" 
+                element={
+                  <ProtectedRoute>
+                    <PreEntranceCheck />
+                  </ProtectedRoute>
+                } 
+              />
               <Route 
                 path="/chat/:roomId" 
                 element={

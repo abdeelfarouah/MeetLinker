@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { faker } from "@faker-js/faker";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface Message {
   id: string;
@@ -9,14 +10,30 @@ interface Message {
   isActive: boolean;
 }
 
+interface Participant {
+  id: string;
+  name: string;
+  isActive: boolean;
+  isHost: boolean;
+  avatar: string;
+}
+
 interface MessageListProps {
   messages: Message[];
 }
 
 const MessageList = ({ messages }: MessageListProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
+  
+  // Generate fake participants
+  const participants: Participant[] = Array.from({ length: 5 }, () => ({
+    id: faker.string.uuid(),
+    name: faker.internet.userName(),
+    isActive: faker.datatype.boolean(),
+    isHost: faker.datatype.boolean(),
+    avatar: faker.image.avatar(),
+  }));
 
-  // Faire défiler vers le bas lorsqu'un nouveau message est ajouté
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -24,14 +41,36 @@ const MessageList = ({ messages }: MessageListProps) => {
   }, [messages]);
 
   return (
-    <ScrollArea ref={scrollRef} className="h-[calc(100vh-28rem)] p-4">
-      <div className="space-y-4">
-        {messages.map((msg) => {
-          // Génération d'un participant factice avec un statut actif ou non
-          const isActive = faker.datatype.boolean();
-          const participantName = faker.internet.userName();
+    <div className="flex flex-col h-full">
+      <div className="mb-4">
+        <h3 className="font-semibold mb-2">Participants</h3>
+        <div className="space-y-2">
+          {participants.map((participant) => (
+            <div key={participant.id} className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100">
+              <div className="relative">
+                <Avatar>
+                  <AvatarImage src={participant.avatar} />
+                  <AvatarFallback>{participant.name.substring(0, 2)}</AvatarFallback>
+                </Avatar>
+                <span 
+                  className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white
+                    ${participant.isActive ? 'bg-green-500' : 'bg-gray-400'}`}
+                />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium">{participant.name}</p>
+                <p className="text-xs text-gray-500">
+                  {participant.isHost ? 'Host' : 'Participant'}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
 
-          return (
+      <ScrollArea ref={scrollRef} className="flex-1 p-4">
+        <div className="space-y-4">
+          {messages.map((msg) => (
             <div
               key={msg.id}
               className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
@@ -43,21 +82,13 @@ const MessageList = ({ messages }: MessageListProps) => {
                     : "bg-muted"
                 }`}
               >
-                <div className="flex items-center gap-2 mb-1">
-                  <span
-                    className={`w-3 h-3 rounded-full ${
-                      isActive ? "bg-green-500" : "bg-gray-400"
-                    }`}
-                  />
-                  <span className="text-sm font-semibold">{participantName}</span>
-                </div>
                 <p>{msg.text}</p>
               </div>
             </div>
-          );
-        })}
-      </div>
-    </ScrollArea>
+          ))}
+        </div>
+      </ScrollArea>
+    </div>
   );
 };
 
