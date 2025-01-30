@@ -1,6 +1,11 @@
 import { useState, useRef, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
+import VideoStream from "@/components/chat/VideoStream";
+import MediaControls from "@/components/chat/MediaControls";
+import TranscriptionDisplay from "@/components/chat/TranscriptionDisplay";
+import MessageList from "@/components/chat/MessageList";
+import MessageInput from "@/components/chat/MessageInput";
 
 interface SpeechRecognitionEvent extends Event {
   results: SpeechRecognitionResultList;
@@ -20,12 +25,6 @@ declare global {
     webkitSpeechRecognition: new () => SpeechRecognition;
   }
 }
-
-import VideoStream from "@/components/chat/VideoStream";
-import MediaControls from "@/components/chat/MediaControls";
-import TranscriptionDisplay from "@/components/chat/TranscriptionDisplay";
-import MessageList from "@/components/chat/MessageList";
-import MessageInput from "@/components/chat/MessageInput";
 
 const ChatRoom = () => {
   const { toast } = useToast();
@@ -152,38 +151,44 @@ const ChatRoom = () => {
   }, [videoStream, screenStream]); // ❌ Removed extra closing bracket
 
   return (
-    <div className="flex h-screen flex-col">
-      <header>
-        <MediaControls
-          isVideoOn={isVideoOn}
-          isScreenSharing={isScreenSharing}
-          onToggleVideo={startVideo}
-          onToggleScreenShare={startScreenShare}
-        />
-      </header>
-
-      <div className="flex flex-1 gap-4 p-4">
-        <div className="flex w-3/4 flex-col">
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <VideoStream isActive={isVideoOn} stream={videoStream} />
-            <VideoStream isActive={isScreenSharing} stream={screenStream} />
-          </div>
-
-          <TranscriptionDisplay transcript={transcript} />
-
-          <Card className="flex-1">
-            <MessageList messages={messages} />
+    <div className="container mx-auto px-4 py-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Main Video Chat Area */}
+        <div className="lg:col-span-2 space-y-4">
+          <Card className="p-6">
+            <h2 className="text-2xl font-bold mb-4">Video Chat</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <VideoStream isActive={isVideoOn} stream={videoStream} />
+              <VideoStream isActive={isScreenSharing} stream={screenStream} />
+            </div>
+            <MediaControls
+              isVideoOn={isVideoOn}
+              isScreenSharing={isScreenSharing}
+              onToggleVideo={startVideo}
+              onToggleScreenShare={startScreenShare}
+            />
           </Card>
 
-          <MessageInput onSendMessage={handleSendMessage} />
+          <TranscriptionDisplay transcript={transcript} />
         </div>
 
-        <Card className="w-1/4 p-4">
-          <h2 className="mb-4 font-semibold">Participants</h2>
-          <div className="space-y-2">
-            <div className="text-sm text-gray-500">Aucun participant</div>
-          </div>
-        </Card>
+        {/* Chat and Participants Area */}
+        <div className="space-y-4">
+          <Card className="p-6">
+            <h2 className="text-2xl font-bold mb-4">Chat</h2>
+            <div className="h-[60vh] flex flex-col">
+              <MessageList messages={messages} />
+              <MessageInput onSendMessage={handleSendMessage} />
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <h2 className="text-2xl font-bold mb-4">Participants</h2>
+            <div className="space-y-2">
+              <div className="text-sm text-gray-500">No participants yet</div>
+            </div>
+          </Card>
+        </div>
       </div>
     </div>
   );
