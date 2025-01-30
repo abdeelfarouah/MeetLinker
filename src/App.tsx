@@ -2,15 +2,14 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider, useAuth } from "./contexts/AuthContext"; // Import de useAuth pour vérifier l'authentification
+import { BrowserRouter, Routes, Route, Navigate, Link } from "react-router-dom";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import HomePage from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import ChatRoom from "./pages/chat/ChatRoom";
 
-// Utilisation de QueryClient pour gérer les requêtes asynchrones
 const queryClient = new QueryClient();
 
 function App() {
@@ -19,8 +18,37 @@ function App() {
       <AuthProvider>
         <TooltipProvider>
           <BrowserRouter>
+            <nav className="bg-primary p-4">
+              <div className="container mx-auto flex gap-6 text-primary-foreground">
+                <Link 
+                  to="/auth/login" 
+                  className="hover:text-white transition-colors"
+                >
+                  Sign In
+                </Link>
+                <Link 
+                  to="/auth/register" 
+                  className="hover:text-white transition-colors"
+                >
+                  Register
+                </Link>
+                <Link 
+                  to="/" 
+                  className="hover:text-white transition-colors"
+                >
+                  Pre-Entrance
+                </Link>
+                <Link 
+                  to="/chat" 
+                  className="hover:text-white transition-colors"
+                >
+                  Chatroom
+                </Link>
+              </div>
+            </nav>
+
             <Routes>
-              <Route path="/" element={<LandingPage />} />
+              <Route path="/" element={<HomePage />} />
               <Route path="/auth/login" element={<Login />} />
               <Route path="/auth/register" element={<Register />} />
               <Route 
@@ -141,5 +169,3 @@ const LandingPage = () => {
 };
 
 export default App;
-
-
