@@ -38,6 +38,8 @@ function App() {
                   </ProtectedRoute>
                 } 
               />
+              {/* Redirect /chat to home page */}
+              <Route path="/chat" element={<Navigate to="/" replace />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
