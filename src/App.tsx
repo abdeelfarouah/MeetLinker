@@ -2,9 +2,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, Link } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
-import HomePage from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
@@ -18,37 +17,8 @@ function App() {
       <AuthProvider>
         <TooltipProvider>
           <BrowserRouter>
-            <nav className="bg-primary p-4">
-              <div className="container mx-auto flex gap-6 text-primary-foreground">
-                <Link 
-                  to="/auth/login" 
-                  className="hover:text-white transition-colors"
-                >
-                  Sign In
-                </Link>
-                <Link 
-                  to="/auth/register" 
-                  className="hover:text-white transition-colors"
-                >
-                  Register
-                </Link>
-                <Link 
-                  to="/" 
-                  className="hover:text-white transition-colors"
-                >
-                  Pre-Entrance
-                </Link>
-                <Link 
-                  to="/chat" 
-                  className="hover:text-white transition-colors"
-                >
-                  Chatroom
-                </Link>
-              </div>
-            </nav>
-
             <Routes>
-              <Route path="/" element={<HomePage />} />
+              <Route path="/" element={<LandingPage />} />
               <Route path="/auth/login" element={<Login />} />
               <Route path="/auth/register" element={<Register />} />
               <Route 
@@ -112,7 +82,7 @@ const LandingPage = () => {
               <path d="M12 10v3m0 0v3m0-3h3m-3 0H9" />
             </svg>
           </div>
-          <h3 className="text-2xl font-semibold mb-4">Instant Video Calls</h3>
+          <h3 className="text-2xl font-semibold mb-4 text-gray-800">Instant Video Calls</h3>
           <p className="text-gray-600 text-center">
             Start a video call instantly and connect with anyone, anywhere, at any time.
           </p>
@@ -133,7 +103,7 @@ const LandingPage = () => {
               <path d="M16 2h6v6M2 16h6v6M2 2l20 20" />
             </svg>
           </div>
-          <h3 className="text-2xl font-semibold mb-4">Join Meetings Anytime</h3>
+          <h3 className="text-2xl font-semibold mb-4 text-gray-800">Join Meetings Anytime</h3>
           <p className="text-gray-600 text-center">
             Join scheduled or impromptu meetings with ease, no matter the time zone.
           </p>
@@ -154,7 +124,7 @@ const LandingPage = () => {
               <path d="M4 6H20M4 12H20M4 18H20" />
             </svg>
           </div>
-          <h3 className="text-2xl font-semibold mb-4">Screen Sharing</h3>
+          <h3 className="text-2xl font-semibold mb-4 text-gray-800">Screen Sharing</h3>
           <p className="text-gray-600 text-center">
             Share your screen effortlessly for a more interactive meeting experience.
           </p>
