@@ -1,39 +1,33 @@
 import { useState, useRef, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import VideoStream from "@/components/chat/VideoStream";
 import MediaControls from "@/components/chat/MediaControls";
 import TranscriptionDisplay from "@/components/chat/TranscriptionDisplay";
 import MessageList from "@/components/chat/MessageList";
 import MessageInput from "@/components/chat/MessageInput";
-import { useAuth } from "@/contexts/AuthContext";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface SpeechRecognitionEvent extends Event {
   results: SpeechRecognitionResultList;
+  resultIndex: number;
 }
 
 interface SpeechRecognition extends EventTarget {
   continuous: boolean;
   interimResults: boolean;
-  lang: string;
-  start: () => void;
-  stop: () => void;
-  addEventListener: (type: string, listener: (event: SpeechRecognitionEvent) => void) => void;
-  removeEventListener: (type: string, listener: (event: SpeechRecognitionEvent) => void) => void;
+  start(): void;
+  stop(): void;
+  onresult: (event: SpeechRecognitionEvent) => void;
 }
 
 declare global {
   interface Window {
-    SpeechRecognition: new () => SpeechRecognition;
     webkitSpeechRecognition: new () => SpeechRecognition;
   }
 }
 
 const ChatRoom = () => {
   const { toast } = useToast();
-  const { user } = useAuth();
   const [messages, setMessages] = useState<Array<{ id: string; text: string; sender: string; isActive: boolean }>>([]);
   const [isVideoOn, setIsVideoOn] = useState(false);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
@@ -143,98 +137,57 @@ const ChatRoom = () => {
   };
 
   useEffect(() => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (SpeechRecognition) {
-      recognitionRef.current = new SpeechRecognition();
-      recognitionRef.current.continuous = true;
-      recognitionRef.current.interimResults = true;
-      recognitionRef.current.lang = "fr-FR";
-
-      recognitionRef.current.addEventListener("result", (event: SpeechRecognitionEvent) => {
-        const transcript = Array.from(event.results)
-          .map((result) => result[0].transcript)
-          .join("");
-        setTranscript(transcript);
-      });
-
-      recognitionRef.current.start();
-    }
-
     return () => {
+      if (videoStream) {
+        videoStream.getTracks().forEach((track) => track.stop());
+      }
+      if (screenStream) {
+        screenStream.getTracks().forEach((track) => track.stop());
+      }
       if (recognitionRef.current) {
         recognitionRef.current.stop();
       }
     };
-  }, [videoStream, screenStream]);
+  }, [videoStream, screenStream]); // ❌ Removed extra closing bracket
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto p-4">
-        <div className="grid grid-cols-12 gap-4 h-[calc(100vh-2rem)]">
-          {/* Left side - Video and Screen Share */}
-          <div className="col-span-12 lg:col-span-8 space-y-4">
-            <Card className="h-full">
-              <div className="h-full flex flex-col">
-                <Tabs defaultValue="video" className="w-full flex-1">
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="video">Video Chat</TabsTrigger>
-                    <TabsTrigger value="screen">Screen Share</TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="video" className="flex-1">
-                    <div className="h-full p-4">
-                      <VideoStream isActive={isVideoOn} stream={videoStream} className="h-full" />
-                    </div>
-                  </TabsContent>
-                  
-                  <TabsContent value="screen" className="flex-1">
-                    <div className="h-full p-4">
-                      <VideoStream isActive={isScreenSharing} stream={screenStream} className="h-full" />
-                    </div>
-                  </TabsContent>
-                </Tabs>
+    <div className="container mx-auto px-4 py-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Main Video Chat Area */}
+        <div className="lg:col-span-2 space-y-4">
+          <Card className="p-6">
+            <h2 className="text-2xl font-bold mb-4">Video Chat</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <VideoStream isActive={isVideoOn} stream={videoStream} />
+              <VideoStream isActive={isScreenSharing} stream={screenStream} />
+            </div>
+            <MediaControls
+              isVideoOn={isVideoOn}
+              isScreenSharing={isScreenSharing}
+              onToggleVideo={startVideo}
+              onToggleScreenShare={startScreenShare}
+            />
+          </Card>
 
-                <div className="p-4 border-t">
-                  <MediaControls
-                    isVideoOn={isVideoOn}
-                    isScreenSharing={isScreenSharing}
-                    onToggleVideo={startVideo}
-                    onToggleScreenShare={startScreenShare}
-                  />
-                </div>
-              </div>
-            </Card>
-          </div>
+          <TranscriptionDisplay transcript={transcript} />
+        </div>
 
-          {/* Right side - Chat and Transcription */}
-          <div className="col-span-12 lg:col-span-4 space-y-4">
-            <Card className="h-[calc(70vh-1rem)]">
-              <div className="h-full flex flex-col">
-                <div className="p-4 border-b">
-                  <h2 className="text-xl font-semibold">Chat Room</h2>
-                </div>
-                
-                <ScrollArea className="flex-1 p-4">
-                  <MessageList messages={messages} />
-                </ScrollArea>
+        {/* Chat and Participants Area */}
+        <div className="space-y-4">
+          <Card className="p-6">
+            <h2 className="text-2xl font-bold mb-4">Chat</h2>
+            <div className="h-[60vh] flex flex-col">
+              <MessageList messages={messages} />
+              <MessageInput onSendMessage={handleSendMessage} />
+            </div>
+          </Card>
 
-                <div className="p-4 border-t">
-                  <MessageInput onSendMessage={handleSendMessage} />
-                </div>
-              </div>
-            </Card>
-
-            <Card className="h-[calc(30vh-1rem)]">
-              <div className="h-full flex flex-col">
-                <div className="p-4 border-b">
-                  <h2 className="text-xl font-semibold">Live Transcription</h2>
-                </div>
-                <ScrollArea className="flex-1 p-4">
-                  <TranscriptionDisplay transcript={transcript} />
-                </ScrollArea>
-              </div>
-            </Card>
-          </div>
+          <Card className="p-6">
+            <h2 className="text-2xl font-bold mb-4">Participants</h2>
+            <div className="space-y-2">
+              <div className="text-sm text-gray-500">No participants yet</div>
+            </div>
+          </Card>
         </div>
       </div>
     </div>
