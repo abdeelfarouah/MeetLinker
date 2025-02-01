@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import VideoStream from "@/components/chat/VideoStream";
 import MediaControls from "@/components/chat/MediaControls";
 import TranscriptionDisplay from "@/components/chat/TranscriptionDisplay";
 import MessageList from "@/components/chat/MessageList";
 import MessageInput from "@/components/chat/MessageInput";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface SpeechRecognitionEvent extends Event {
   results: SpeechRecognitionResultList;
@@ -28,6 +30,7 @@ declare global {
 
 const ChatRoom = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [messages, setMessages] = useState<Array<{ id: string; text: string; sender: string; isActive: boolean }>>([]);
   const [isVideoOn, setIsVideoOn] = useState(false);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
@@ -148,44 +151,46 @@ const ChatRoom = () => {
         recognitionRef.current.stop();
       }
     };
-  }, [videoStream, screenStream]); // ❌ Removed extra closing bracket
+  }, [videoStream, screenStream]);
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Video Chat Area */}
-        <div className="lg:col-span-2 space-y-4">
-          <Card className="p-6">
-            <h2 className="text-2xl font-bold mb-4">Video Chat</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <VideoStream isActive={isVideoOn} stream={videoStream} />
-              <VideoStream isActive={isScreenSharing} stream={screenStream} />
-            </div>
-            <MediaControls
-              isVideoOn={isVideoOn}
-              isScreenSharing={isScreenSharing}
-              onToggleVideo={startVideo}
-              onToggleScreenShare={startScreenShare}
-            />
-          </Card>
+        <div className="lg:col-span-2">
+          <Tabs defaultValue="video" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="video">Video Chat</TabsTrigger>
+              <TabsTrigger value="screen">Screen Share</TabsTrigger>
+            </TabsList>
+            <TabsContent value="video">
+              <Card className="p-6">
+                <h2 className="text-2xl font-bold mb-4">Video Chat</h2>
+                <VideoStream isActive={isVideoOn} stream={videoStream} />
+                <MediaControls
+                  isVideoOn={isVideoOn}
+                  isScreenSharing={isScreenSharing}
+                  onToggleVideo={startVideo}
+                  onToggleScreenShare={startScreenShare}
+                />
+              </Card>
+            </TabsContent>
+            <TabsContent value="screen">
+              <Card className="p-6">
+                <h2 className="text-2xl font-bold mb-4">Screen Share</h2>
+                <VideoStream isActive={isScreenSharing} stream={screenStream} />
+              </Card>
+            </TabsContent>
+          </Tabs>
 
           <TranscriptionDisplay transcript={transcript} />
         </div>
 
-        {/* Chat and Participants Area */}
         <div className="space-y-4">
           <Card className="p-6">
             <h2 className="text-2xl font-bold mb-4">Chat</h2>
             <div className="h-[60vh] flex flex-col">
               <MessageList messages={messages} />
               <MessageInput onSendMessage={handleSendMessage} />
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <h2 className="text-2xl font-bold mb-4">Participants</h2>
-            <div className="space-y-2">
-              <div className="text-sm text-gray-500">No participants yet</div>
             </div>
           </Card>
         </div>
