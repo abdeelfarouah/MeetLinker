@@ -6,6 +6,7 @@ import MediaControls from "@/components/chat/MediaControls";
 import TranscriptionDisplay from "@/components/chat/TranscriptionDisplay";
 import MessageList from "@/components/chat/MessageList";
 import MessageInput from "@/components/chat/MessageInput";
+import ChatLayout from "@/components/chat/ChatLayout";
 
 interface SpeechRecognitionEvent extends Event {
   results: SpeechRecognitionResultList;
@@ -28,7 +29,9 @@ declare global {
 
 const ChatRoom = () => {
   const { toast } = useToast();
-  const [messages, setMessages] = useState<Array<{ id: string; text: string; sender: string; isActive: boolean }>>([]);
+  const [messages, setMessages] = useState<Array<{ id: string; text: string; sender: string; isActive: boolean }>>([
+    { id: '1', text: 'Welcome to the chat room! You are now connected.', sender: 'system', isActive: true }
+  ]);
   const [isVideoOn, setIsVideoOn] = useState(false);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [transcript, setTranscript] = useState("");
@@ -36,7 +39,6 @@ const ChatRoom = () => {
   const [screenStream, setScreenStream] = useState<MediaStream | null>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
 
-  // Speech Recognition Configuration
   const startSpeechRecognition = () => {
     if ("webkitSpeechRecognition" in window) {
       const recognition = new window.webkitSpeechRecognition();
@@ -151,13 +153,12 @@ const ChatRoom = () => {
   }, [videoStream, screenStream]); // ❌ Removed extra closing bracket
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Video Chat Area */}
+    <ChatLayout>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 h-[calc(100vh-12rem)]">
         <div className="lg:col-span-2 space-y-4">
-          <Card className="p-6">
+          <Card className="p-6 h-full">
             <h2 className="text-2xl font-bold mb-4">Video Chat</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-[calc(100%-8rem)]">
               <VideoStream isActive={isVideoOn} stream={videoStream} />
               <VideoStream isActive={isScreenSharing} stream={screenStream} />
             </div>
@@ -168,29 +169,25 @@ const ChatRoom = () => {
               onToggleScreenShare={startScreenShare}
             />
           </Card>
-
-          <TranscriptionDisplay transcript={transcript} />
         </div>
 
-        {/* Chat and Participants Area */}
-        <div className="space-y-4">
-          <Card className="p-6">
+        <div className="space-y-4 h-full">
+          <Card className="p-6 h-full flex flex-col">
             <h2 className="text-2xl font-bold mb-4">Chat</h2>
-            <div className="h-[60vh] flex flex-col">
+            <div className="flex-1 overflow-hidden">
               <MessageList messages={messages} />
               <MessageInput onSendMessage={handleSendMessage} />
             </div>
           </Card>
-
-          <Card className="p-6">
-            <h2 className="text-2xl font-bold mb-4">Participants</h2>
-            <div className="space-y-2">
-              <div className="text-sm text-gray-500">No participants yet</div>
-            </div>
-          </Card>
         </div>
+
+        {transcript && (
+          <div className="lg:col-span-3">
+            <TranscriptionDisplay transcript={transcript} />
+          </div>
+        )}
       </div>
-    </div>
+    </ChatLayout>
   );
 };
 
