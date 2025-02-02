@@ -129,7 +129,7 @@ const ChatRoom = () => {
               onToggleScreenShare={startScreenShare}
             />
           </Card>
-          <TranscriptionDisplay text={transcription} />
+          <TranscriptionDisplay transcript={transcription} />
         </div>
         <div className="space-y-4">
           <Card className="h-full flex flex-col">

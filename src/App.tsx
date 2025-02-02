@@ -25,6 +25,14 @@ function App() {
               <Route path="/auth/login" element={<Login />} />
               <Route path="/auth/register" element={<Register />} />
               <Route 
+                path="/chat" 
+                element={
+                  <ProtectedRoute>
+                    <Navigate to="/pre-entrance/new" replace />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
                 path="/pre-entrance/:roomId" 
                 element={
                   <ProtectedRoute>
@@ -33,7 +41,7 @@ function App() {
                 } 
               />
               <Route 
-                path="/chat/:roomId?" 
+                path="/chat/:roomId" 
                 element={
                   <ProtectedRoute>
                     <ChatRoom />
