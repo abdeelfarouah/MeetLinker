@@ -25,10 +25,10 @@ interface MessageListProps {
 const MessageList = ({ messages }: MessageListProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   
-  // Generate fake participants
+  // Generate fake participants with French names
   const participants: Participant[] = Array.from({ length: 5 }, () => ({
     id: faker.string.uuid(),
-    name: faker.internet.userName(),
+    name: faker.person.firstName() + " " + faker.person.lastName(),
     isActive: faker.datatype.boolean(),
     isHost: faker.datatype.boolean(),
     avatar: faker.image.avatar(),
@@ -60,7 +60,7 @@ const MessageList = ({ messages }: MessageListProps) => {
               <div className="flex-1">
                 <p className="text-sm font-medium">{participant.name}</p>
                 <p className="text-xs text-gray-500">
-                  {participant.isHost ? 'Host' : 'Participant'}
+                  {participant.isHost ? 'Hôte' : 'Participant'}
                 </p>
               </div>
             </div>
@@ -68,7 +68,7 @@ const MessageList = ({ messages }: MessageListProps) => {
         </div>
       </div>
 
-      <ScrollArea ref={scrollRef} className="flex-1 p-4">
+      <ScrollArea className="flex-1 p-4">
         <div className="space-y-4">
           {messages.map((msg) => (
             <div

@@ -65,9 +65,11 @@ const ChatRoom = () => {
 
   const startVideo = async () => {
     try {
-      if (videoStream) {
-        videoStream.getTracks().forEach((track) => track.stop());
-        setVideoStream(null);
+      if (isVideoOn) {
+        if (videoStream) {
+          videoStream.getTracks().forEach((track) => track.stop());
+          setVideoStream(null);
+        }
         if (recognitionRef.current) {
           recognitionRef.current.stop();
           recognitionRef.current = null;
@@ -150,7 +152,7 @@ const ChatRoom = () => {
         recognitionRef.current.stop();
       }
     };
-  }, [videoStream, screenStream]); // ❌ Removed extra closing bracket
+  }, [videoStream, screenStream]);
 
   return (
     <ChatLayout>
@@ -158,7 +160,7 @@ const ChatRoom = () => {
         <div className="lg:col-span-2 space-y-4">
           <Card className="p-6 h-full">
             <h2 className="text-2xl font-bold mb-4">Video Chat</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-[calc(100%-8rem)]">
+            <div className="grid grid-cols-2 gap-4 h-[calc(100%-8rem)]">
               <VideoStream isActive={isVideoOn} stream={videoStream} />
               <VideoStream isActive={isScreenSharing} stream={screenStream} />
             </div>
