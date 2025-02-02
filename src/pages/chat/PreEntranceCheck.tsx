@@ -4,7 +4,9 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import VideoStream from "@/components/chat/VideoStream";
 import { Card } from "@/components/ui/card";
-import { AlertCircle, CheckCircle2 } from "lucide-react";
+import { AlertCircle, CheckCircle2, Camera, Mic } from "lucide-react";
+
+const MEDIA_TIMEOUT = 10000; // 10 seconds timeout
 
 const PreEntranceCheck = () => {
   const [videoStream, setVideoStream] = useState<MediaStream | null>(null);
@@ -15,14 +17,15 @@ const PreEntranceCheck = () => {
   const navigate = useNavigate();
 
   const checkDeviceSupport = async () => {
+    console.log("Checking device support...");
     try {
-      // First check if the browser supports getUserMedia
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         throw new Error("Votre navigateur ne supporte pas l'accès aux périphériques média");
       }
 
-      // Check if the devices are available
       const devices = await navigator.mediaDevices.enumerateDevices();
+      console.log("Available devices:", devices);
+
       const hasVideo = devices.some(device => device.kind === 'videoinput');
       const hasAudio = devices.some(device => device.kind === 'audioinput');
 
@@ -37,16 +40,9 @@ const PreEntranceCheck = () => {
     }
   };
 
-  const startDeviceCheck = async () => {
-    setIsLoading(true);
-    try {
-      const deviceSupported = await checkDeviceSupport();
-      if (!deviceSupported) {
-        throw new Error("Périphériques non supportés");
-      }
-
-      // Request permissions with constraints
-      const stream = await navigator.mediaDevices.getUserMedia({
+  const getMediaStream = async () => {
+    const stream = await Promise.race([
+      navigator.mediaDevices.getUserMedia({
         video: {
           width: { ideal: 1280 },
           height: { ideal: 720 },
@@ -56,14 +52,44 @@ const PreEntranceCheck = () => {
           echoCancellation: true,
           noiseSuppression: true
         }
-      });
+      }),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error("Délai d'attente dépassé pour l'accès aux périphériques")), MEDIA_TIMEOUT)
+      )
+    ]) as MediaStream;
 
-      // Verify tracks are actually working
+    return stream;
+  };
+
+  const startDeviceCheck = async () => {
+    console.log("Starting device check...");
+    setIsLoading(true);
+    setIsVideoWorking(false);
+    setIsAudioWorking(false);
+
+    try {
+      const deviceSupported = await checkDeviceSupport();
+      if (!deviceSupported) {
+        throw new Error("Périphériques non supportés");
+      }
+
+      const stream = await getMediaStream();
+      console.log("Media stream obtained:", stream);
+
+      // Verify tracks are active
       const videoTrack = stream.getVideoTracks()[0];
       const audioTrack = stream.getAudioTracks()[0];
 
-      if (!videoTrack || !audioTrack) {
-        throw new Error("Impossible d'accéder à la caméra ou au microphone");
+      if (!videoTrack?.enabled || !audioTrack?.enabled) {
+        throw new Error("Les périphériques ne sont pas actifs");
+      }
+
+      // Test video track settings
+      const videoSettings = videoTrack.getSettings();
+      console.log("Video track settings:", videoSettings);
+
+      if (!videoSettings.width || !videoSettings.height) {
+        throw new Error("La caméra n'a pas pu être initialisée correctement");
       }
 
       setVideoStream(stream);
@@ -84,6 +110,8 @@ const PreEntranceCheck = () => {
         errorMessage = "Caméra ou microphone non trouvé";
       } else if (error.name === "NotReadableError") {
         errorMessage = "Impossible d'accéder aux périphériques. Ils sont peut-être utilisés par une autre application";
+      } else if (error.name === "AbortError") {
+        errorMessage = "L'initialisation des périphériques a pris trop de temps. Veuillez réessayer";
       }
 
       toast({
@@ -115,7 +143,11 @@ const PreEntranceCheck = () => {
     startDeviceCheck();
     return () => {
       if (videoStream) {
-        videoStream.getTracks().forEach(track => track.stop());
+        console.log("Cleaning up media streams");
+        videoStream.getTracks().forEach(track => {
+          track.stop();
+          console.log(`Track ${track.kind} stopped`);
+        });
       }
     };
   }, []);
@@ -141,7 +173,7 @@ const PreEntranceCheck = () => {
               <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                 <span className="flex items-center gap-2">
                   {isVideoWorking ? (
-                    <CheckCircle2 className="text-green-600" />
+                    <Camera className="text-green-600" />
                   ) : (
                     <AlertCircle className="text-red-600" />
                   )}
@@ -155,7 +187,7 @@ const PreEntranceCheck = () => {
               <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                 <span className="flex items-center gap-2">
                   {isAudioWorking ? (
-                    <CheckCircle2 className="text-green-600" />
+                    <Mic className="text-green-600" />
                   ) : (
                     <AlertCircle className="text-red-600" />
                   )}
