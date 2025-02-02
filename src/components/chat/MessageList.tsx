@@ -1,13 +1,13 @@
-import { useEffect, useRef } from "react";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { faker } from "@faker-js/faker";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import React, { useRef, useEffect } from 'react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { faker } from '@faker-js/faker/locale/fr';
 
 interface Message {
   id: string;
-  text: string;
+  content: string;
   sender: string;
-  isActive: boolean;
+  timestamp: Date;
 }
 
 interface Participant {
@@ -42,20 +42,22 @@ const MessageList = ({ messages }: MessageListProps) => {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="mb-4">
+      <div className="p-4 border-b">
         <h3 className="font-semibold mb-2">Participants</h3>
         <div className="space-y-2">
           {participants.map((participant) => (
-            <div key={participant.id} className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100">
+            <div
+              key={participant.id}
+              className="flex items-center space-x-2"
+            >
               <div className="relative">
                 <Avatar>
-                  <AvatarImage src={participant.avatar} />
-                  <AvatarFallback>{participant.name.substring(0, 2)}</AvatarFallback>
+                  <AvatarImage src={participant.avatar} alt={participant.name} />
+                  <AvatarFallback>{participant.name[0]}</AvatarFallback>
                 </Avatar>
-                <span 
-                  className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white
-                    ${participant.isActive ? 'bg-green-500' : 'bg-gray-400'}`}
-                />
+                {participant.isActive && (
+                  <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
+                )}
               </div>
               <div className="flex-1">
                 <p className="text-sm font-medium">{participant.name}</p>
@@ -68,26 +70,26 @@ const MessageList = ({ messages }: MessageListProps) => {
         </div>
       </div>
 
-      <ScrollArea className="flex-1 p-4">
-        <div className="space-y-4">
-          {messages.map((msg) => (
-            <div
-              key={msg.id}
-              className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
-            >
+      <div ref={scrollRef} className="flex-1 overflow-auto">
+        <ScrollArea className="h-full p-4">
+          <div className="space-y-4">
+            {messages.map((msg) => (
               <div
-                className={`rounded-lg px-4 py-2 max-w-xs ${
-                  msg.sender === "user"
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted"
-                }`}
+                key={msg.id}
+                className="flex items-start space-x-2"
               >
-                <p>{msg.text}</p>
+                <div className="flex-1">
+                  <p className="text-sm font-medium">{msg.sender}</p>
+                  <p className="text-sm">{msg.content}</p>
+                  <p className="text-xs text-gray-500">
+                    {msg.timestamp.toLocaleTimeString()}
+                  </p>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      </ScrollArea>
+            ))}
+          </div>
+        </ScrollArea>
+      </div>
     </div>
   );
 };
