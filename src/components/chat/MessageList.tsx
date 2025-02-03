@@ -10,29 +10,28 @@ interface Message {
   timestamp: Date;
 }
 
-interface Participant {
+interface User {
   id: string;
   name: string;
-  isActive: boolean;
-  isHost: boolean;
   avatar: string;
 }
 
 interface MessageListProps {
   messages: Message[];
+  currentUser: User;
 }
 
-const MessageList = ({ messages }: MessageListProps) => {
+const MessageList = ({ messages, currentUser }: MessageListProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   
-  // Generate fake participants with French names
-  const participants: Participant[] = Array.from({ length: 5 }, () => ({
-    id: faker.string.uuid(),
-    name: faker.person.firstName() + " " + faker.person.lastName(),
-    isActive: faker.datatype.boolean(),
-    isHost: faker.datatype.boolean(),
-    avatar: faker.image.avatar(),
-  }));
+  const participants = [
+    currentUser,
+    ...Array.from({ length: 4 }, () => ({
+      id: faker.string.uuid(),
+      name: faker.person.fullName(),
+      avatar: faker.image.avatar(),
+    }))
+  ];
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -55,14 +54,13 @@ const MessageList = ({ messages }: MessageListProps) => {
                   <AvatarImage src={participant.avatar} alt={participant.name} />
                   <AvatarFallback>{participant.name[0]}</AvatarFallback>
                 </Avatar>
-                {participant.isActive && (
+                {participant.id === currentUser.id && (
                   <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
                 )}
               </div>
               <div className="flex-1">
-                <p className="text-sm font-medium">{participant.name}</p>
-                <p className="text-xs text-gray-500">
-                  {participant.isHost ? 'Hôte' : 'Participant'}
+                <p className="text-sm font-medium">
+                  {participant.name} {participant.id === currentUser.id && '(Vous)'}
                 </p>
               </div>
             </div>
@@ -76,12 +74,20 @@ const MessageList = ({ messages }: MessageListProps) => {
             {messages.map((msg) => (
               <div
                 key={msg.id}
-                className="flex items-start space-x-2"
+                className={`flex items-start space-x-2 ${
+                  msg.sender === currentUser.name ? 'justify-end' : 'justify-start'
+                }`}
               >
-                <div className="flex-1">
+                <div className="flex-1 max-w-[80%]">
                   <p className="text-sm font-medium">{msg.sender}</p>
-                  <p className="text-sm">{msg.content}</p>
-                  <p className="text-xs text-gray-500">
+                  <div className={`rounded-lg p-3 ${
+                    msg.sender === currentUser.name 
+                      ? 'bg-blue-500 text-white ml-auto' 
+                      : 'bg-gray-100'
+                  }`}>
+                    <p className="text-sm break-words">{msg.content}</p>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
                     {msg.timestamp.toLocaleTimeString()}
                   </p>
                 </div>
