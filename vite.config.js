@@ -15,7 +15,7 @@ export default {
   plugins: [
     react(),
     process.env.NODE_ENV === 'development' &&
-    componentTagger(),
+      componentTagger(),
   ].filter(Boolean),
 
   resolve: {
@@ -23,4 +23,4 @@ export default {
       "@": path.resolve(__dirname, "./src"),
     },
   },
-};
+}; 
