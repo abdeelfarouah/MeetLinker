@@ -1,5 +1,5 @@
 interface Window {
-  webkitSpeechRecognition: any;
+  webkitSpeechRecognition: typeof SpeechRecognition;
 }
 
-declare var window: Window;
+declare let window: Window;

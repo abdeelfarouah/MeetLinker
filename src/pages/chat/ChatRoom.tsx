@@ -15,9 +15,7 @@ import ErrorBoundary from '@/components/ui/ErrorBoundary';
 // Declare webkitSpeechRecognition so it is recognized by TypeScript
 declare global {
   interface Window {
-    webkitSpeechRecognition: {
-      new (): SpeechRecognition;
-    };
+    webkitSpeechRecognition: SpeechRecognitionStatic;
   }
 }
 
