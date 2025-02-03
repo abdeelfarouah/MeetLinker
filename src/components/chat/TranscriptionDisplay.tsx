@@ -22,9 +22,13 @@ const TranscriptionDisplay = ({ transcript }: TranscriptionDisplayProps) => {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
+      className="mt-4"
     >
-      <Card ref={scrollRef} className="p-4 mb-4 max-h-40 overflow-y-auto bg-secondary">
-        <h3 className="font-semibold mb-2">Transcription en direct</h3>
+      <Card 
+        ref={scrollRef} 
+        className="p-4 max-h-40 overflow-y-auto bg-secondary border-2 border-primary/20"
+      >
+        <h3 className="font-semibold mb-2 text-primary">Transcription en direct</h3>
         <p className="text-sm whitespace-pre-line">{transcript}</p>
       </Card>
     </motion.div>
