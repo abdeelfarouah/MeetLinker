@@ -8,6 +8,15 @@ import MediaControls from '@/components/chat/MediaControls';
 import TranscriptionDisplay from '@/components/chat/TranscriptionDisplay';
 import { faker } from '@faker-js/faker/locale/fr';
 import { toast } from 'sonner';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+
+interface Participant {
+  id: string;
+  name: string;
+  avatar: string;
+  status: 'online' | 'offline' | 'away';
+}
 
 interface Message {
   id: string;
@@ -24,11 +33,20 @@ const ChatRoom = () => {
   const [screenStream, setScreenStream] = useState<MediaStream | null>(null);
   const [transcription, setTranscription] = useState<string>('');
   const recognitionRef = useRef<any>(null);
+  const [participants] = useState<Participant[]>(() => 
+    Array.from({ length: 5 }, () => ({
+      id: faker.string.uuid(),
+      name: faker.person.fullName(),
+      avatar: faker.image.avatar(),
+      status: faker.helpers.arrayElement(['online', 'offline', 'away'] as const)
+    }))
+  );
 
   const currentUser = {
     id: faker.string.uuid(),
     name: faker.person.fullName(),
-    avatar: faker.image.avatar()
+    avatar: faker.image.avatar(),
+    status: 'online' as const
   };
 
   const startVideo = async () => {
@@ -39,6 +57,9 @@ const ChatRoom = () => {
           setVideoStream(null);
         }
         setIsVideoOn(false);
+        if (recognitionRef.current) {
+          recognitionRef.current.stop();
+        }
       } else {
         console.log('Requesting video stream...');
         const stream = await navigator.mediaDevices.getUserMedia({
@@ -129,12 +150,41 @@ const ChatRoom = () => {
     };
   }, [videoStream, screenStream]);
 
+  const getStatusColor = (status: Participant['status']) => {
+    switch (status) {
+      case 'online':
+        return 'bg-green-500';
+      case 'offline':
+        return 'bg-red-500';
+      case 'away':
+        return 'bg-orange-500';
+      default:
+        return 'bg-gray-500';
+    }
+  };
+
   return (
     <ChatLayout>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[calc(100vh-12rem)]">
         <div className="lg:col-span-2 space-y-4">
           <Card className="p-6 h-full">
-            <h2 className="text-2xl font-bold mb-4">Chat Vidéo</h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold">Chat Vidéo</h2>
+              <div className="flex gap-2">
+                {participants.map((participant) => (
+                  <div key={participant.id} className="relative">
+                    <Avatar>
+                      <AvatarImage src={participant.avatar} alt={participant.name} />
+                      <AvatarFallback>{participant.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <Badge 
+                      className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full ${getStatusColor(participant.status)}`}
+                      variant="secondary"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
             <div className="grid grid-cols-2 gap-4 h-[calc(100%-8rem)]">
               <VideoStream isActive={isVideoOn} stream={videoStream} />
               <VideoStream isActive={isScreenSharing} stream={screenStream} />
