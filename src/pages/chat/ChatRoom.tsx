@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { Card } from "@/components/ui/card";
 import ChatLayout from '@/components/chat/ChatLayout';
-import VideoStream from '@/components/chat/VideoStream';
+import VideoStreamsDisplay from '@/components/chat/VideoStreamsDisplay';
 import MessageList from '@/components/chat/MessageList';
 import MessageInput from '@/components/chat/MessageInput';
-import MediaControls from '@/components/chat/MediaControls';
+import VideoControls from '@/components/chat/VideoControls';
 import TranscriptionDisplay from '@/components/chat/TranscriptionDisplay';
 import ParticipantsList from '@/components/chat/ParticipantsList';
 import { faker } from '@faker-js/faker/locale/fr';
@@ -65,7 +65,7 @@ const ChatRoom = () => {
       }
     } catch (error) {
       console.error('Error accessing camera:', error);
-      toast.error('Erreur lors de l\'accès à la caméra');
+      toast.error('Error accessing camera');
     }
   };
 
@@ -89,7 +89,7 @@ const ChatRoom = () => {
       }
     } catch (error) {
       console.error('Error sharing screen:', error);
-      toast.error('Erreur lors du partage d\'écran');
+      toast.error('Error sharing screen');
     }
   };
 
@@ -110,7 +110,7 @@ const ChatRoom = () => {
 
       recognition.onerror = (event: any) => {
         console.error('Speech recognition error:', event.error);
-        toast.error('Erreur de reconnaissance vocale');
+        toast.error('Speech recognition error');
       };
 
       recognition.start();
@@ -137,26 +137,14 @@ const ChatRoom = () => {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 h-[calc(100vh-12rem)]">
         <div className="lg:col-span-3 space-y-4">
           <Card className="p-6 h-full">
-            <h2 className="text-2xl font-bold mb-4">Chat Vidéo</h2>
-            <div className="grid grid-cols-2 gap-4 h-[calc(100%-12rem)]">
-              {isVideoOn && (
-                <div className="relative">
-                  <VideoStream isActive={isVideoOn} stream={videoStream} className="rounded-lg" />
-                  <div className="absolute bottom-2 left-2 bg-black/50 px-2 py-1 rounded text-white text-sm">
-                    Votre caméra
-                  </div>
-                </div>
-              )}
-              {isScreenSharing && (
-                <div className="relative">
-                  <VideoStream isActive={isScreenSharing} stream={screenStream} className="rounded-lg" />
-                  <div className="absolute bottom-2 left-2 bg-black/50 px-2 py-1 rounded text-white text-sm">
-                    Partage d'écran
-                  </div>
-                </div>
-              )}
-            </div>
-            <MediaControls
+            <h2 className="text-2xl font-bold mb-4">Video Chat</h2>
+            <VideoStreamsDisplay
+              videoStream={videoStream}
+              screenStream={screenStream}
+              isVideoOn={isVideoOn}
+              isScreenSharing={isScreenSharing}
+            />
+            <VideoControls
               isVideoOn={isVideoOn}
               isScreenSharing={isScreenSharing}
               onToggleVideo={startVideo}
