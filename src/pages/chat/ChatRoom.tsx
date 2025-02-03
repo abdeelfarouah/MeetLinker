@@ -9,10 +9,21 @@ import TranscriptionDisplay from '@/components/chat/TranscriptionDisplay';
 import ParticipantsList from '@/components/chat/ParticipantsList';
 import { faker } from '@faker-js/faker/locale/fr';
 import { toast } from 'sonner';
+import { encryptMessage, decryptMessage } from '@/utils/crypto';
+import ErrorBoundary from '@/components/ui/ErrorBoundary';
+
+// Declare webkitSpeechRecognition so it is recognized by TypeScript
+declare global {
+  interface Window {
+    webkitSpeechRecognition: {
+      new (): SpeechRecognition;
+    };
+  }
+}
 
 interface Message {
   id: string;
-  content: string;
+  content: string; // Encrypted message content
   sender: string;
   timestamp: Date;
 }
@@ -24,7 +35,11 @@ const ChatRoom = () => {
   const [videoStream, setVideoStream] = useState<MediaStream | null>(null);
   const [screenStream, setScreenStream] = useState<MediaStream | null>(null);
   const [transcription, setTranscription] = useState<string>('');
-  const recognitionRef = useRef<any>(null);
+  
+  // Using SpeechRecognition or null instead of any
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  
+  // Generate a list of participants with random statuses.
   const [participants] = useState(() => 
     Array.from({ length: 5 }, () => ({
       id: faker.string.uuid(),
@@ -34,12 +49,19 @@ const ChatRoom = () => {
     }))
   );
 
+  // The current user is always online.
   const currentUser = {
     id: faker.string.uuid(),
     name: faker.person.fullName(),
     avatar: faker.image.avatar(),
     status: 'online' as const
   };
+
+  // Combine the currentUser with participants that are online.
+  const onlineParticipants = [
+    currentUser,
+    ...participants.filter(participant => participant.status === 'online')
+  ];
 
   const startVideo = async () => {
     try {
@@ -93,22 +115,23 @@ const ChatRoom = () => {
     }
   };
 
-  const startSpeechRecognition = (stream: MediaStream) => {
+  const startSpeechRecognition = (stream: MediaStream): void => {
     if ('webkitSpeechRecognition' in window) {
-      const recognition = new (window as any).webkitSpeechRecognition();
+      const RecognitionConstructor = window.webkitSpeechRecognition;
+      const recognition = new RecognitionConstructor();
       recognition.continuous = true;
       recognition.interimResults = true;
       recognition.lang = 'fr-FR';
 
-      recognition.onresult = (event: any) => {
+      recognition.onresult = (event: SpeechRecognitionEvent) => {
         const transcript = Array.from(event.results)
-          .map((result: any) => result[0].transcript)
+          .map((result: SpeechRecognitionResult) => result[0].transcript)
           .join(' ');
         console.log('Transcription:', transcript);
         setTranscription(transcript);
       };
 
-      recognition.onerror = (event: any) => {
+      recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
         console.error('Speech recognition error:', event.error);
         toast.error('Speech recognition error');
       };
@@ -155,16 +178,26 @@ const ChatRoom = () => {
         </div>
         <div className="space-y-4">
           <Card className="h-full">
-            <ParticipantsList 
-              participants={participants}
-              currentUser={currentUser}
-            />
+            <ErrorBoundary>
+              <ParticipantsList participants={onlineParticipants} currentUser={undefined} />
+            </ErrorBoundary>
             <div className="p-4 border-t">
-              <MessageList messages={messages} currentUser={currentUser} />
+              {/* Decrypt messages before displaying */}
+              <MessageList 
+                messages={
+                  messages.map(msg => ({
+                    ...msg,
+                    content: decryptMessage(msg.content)
+                  }))
+                }
+                currentUser={currentUser}
+              />
               <MessageInput onSendMessage={(content) => {
+                // Encrypt the message content before sending/storing
+                const encryptedContent = encryptMessage(content);
                 const newMessage = {
                   id: Date.now().toString(),
-                  content,
+                  content: encryptedContent,
                   sender: currentUser.name,
                   timestamp: new Date(),
                 };

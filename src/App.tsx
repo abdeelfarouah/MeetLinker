@@ -10,6 +10,7 @@ import Register from "./pages/auth/Register";
 import ChatRoom from "./pages/chat/ChatRoom";
 import PreEntranceCheck from "./pages/chat/PreEntranceCheck";
 import LandingPage from "./pages/LandingPage";
+import ChatUI from '@/components/chat/ChatUI';
 
 const queryClient = new QueryClient();
 
@@ -54,6 +55,7 @@ function App() {
           <Toaster />
           <Sonner />
         </TooltipProvider>
+        <ChatUI />
       </AuthProvider>
     </QueryClientProvider>
   );
