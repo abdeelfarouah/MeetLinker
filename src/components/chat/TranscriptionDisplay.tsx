@@ -10,8 +10,15 @@ const TranscriptionDisplay = ({ transcript }: TranscriptionDisplayProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Auto-scroll to bottom when new text appears
     if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      const scrollElement = scrollRef.current;
+      const isScrolledToBottom = 
+        scrollElement.scrollHeight - scrollElement.scrollTop <= scrollElement.clientHeight + 100;
+      
+      if (isScrolledToBottom) {
+        scrollElement.scrollTop = scrollElement.scrollHeight;
+      }
     }
   }, [transcript]);
 
@@ -26,10 +33,16 @@ const TranscriptionDisplay = ({ transcript }: TranscriptionDisplayProps) => {
     >
       <Card 
         ref={scrollRef} 
-        className="p-4 max-h-40 overflow-y-auto bg-secondary border-2 border-primary/20"
+        className="p-4 max-h-40 overflow-y-auto bg-secondary border-2 border-primary/20 relative"
       >
-        <h3 className="font-semibold mb-2 text-primary">Transcription en direct</h3>
-        <p className="text-sm whitespace-pre-line">{transcript}</p>
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="font-semibold text-primary">Live Transcription</h3>
+          <div className="flex items-center gap-2">
+            <span className="inline-block w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+            <span className="text-xs text-muted-foreground">Recording</span>
+          </div>
+        </div>
+        <p className="text-sm whitespace-pre-line leading-relaxed">{transcript}</p>
       </Card>
     </motion.div>
   );
