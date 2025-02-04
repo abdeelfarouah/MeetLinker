@@ -15,8 +15,10 @@ type Participant = {
 
 // Generate a unique AI-generated face URL
 const generateAIFace = () => {
-  // Add a cache-busting parameter to get a new image each time
-  return `https://thispersondoesnotexist.com?${Date.now()}`;
+  // Using DiceBear API for consistent, unique avatars
+  const style = 'avataaars'; // or 'human', 'bottts', 'gridy', etc.
+  const seed = faker.string.uuid();
+  return `https://api.dicebear.com/7.x/${style}/svg?seed=${seed}`;
 };
 
 export const useParticipants = (currentUser: User | null) => {
