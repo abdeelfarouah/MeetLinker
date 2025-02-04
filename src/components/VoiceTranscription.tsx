@@ -11,13 +11,16 @@ const VoiceTranscription: React.FC<VoiceTranscriptionProps> = ({ stream, isMuted
   const [isTranscribing, setIsTranscribing] = useState(false);
 
   useEffect(() => {
-    if (!stream || isMuted || !('webkitSpeechRecognition' in window)) return;
+    if (!stream || !('webkitSpeechRecognition' in window)) {
+      console.log('Speech recognition not available or no stream');
+      return;
+    }
 
     console.log('Initializing speech recognition...');
     const recognition = new window.webkitSpeechRecognition();
     recognition.continuous = true;
     recognition.interimResults = true;
-    recognition.lang = 'fr-FR'; // Définir la langue en français
+    recognition.lang = 'fr-FR';
 
     recognition.addEventListener('start', () => {
       console.log('Speech recognition started');
@@ -47,24 +50,30 @@ const VoiceTranscription: React.FC<VoiceTranscriptionProps> = ({ stream, isMuted
     });
 
     recognition.addEventListener('end', () => {
-      console.log('Speech recognition ended');
-      setIsTranscribing(false);
+      console.log('Speech recognition ended, restarting...');
       if (!isMuted) {
-        recognition.start();
+        try {
+          recognition.start();
+        } catch (error) {
+          console.error('Error restarting speech recognition:', error);
+        }
       }
     });
 
+    // Start recognition immediately if not muted
     if (!isMuted) {
       try {
         recognition.start();
+        console.log('Initial speech recognition started');
       } catch (error) {
-        console.error('Error starting speech recognition:', error);
+        console.error('Error starting initial speech recognition:', error);
       }
     }
 
     return () => {
       try {
         recognition.stop();
+        console.log('Speech recognition cleanup');
       } catch (error) {
         console.error('Error stopping speech recognition:', error);
       }
