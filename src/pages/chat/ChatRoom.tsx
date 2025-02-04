@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { faker } from '@faker-js/faker/locale/fr';
 import { Card } from "@/components/ui/card";
 import VideoStreamsDisplay from '@/components/chat/VideoStreamsDisplay';
@@ -26,7 +25,8 @@ const ChatRoom = () => {
     transcript,
     isRecording,
     startRecording,
-    stopRecording
+    stopRecording,
+    clearTranscript
   } = useSpeechRecognition();
 
   const currentUser = {
@@ -41,10 +41,13 @@ const ChatRoom = () => {
   const handleToggleRecording = () => {
     if (isRecording) {
       stopRecording();
+      clearTranscript();
     } else {
       startRecording();
     }
   };
+
+  console.log('Transcription state:', { isRecording, transcript }); // Debug log
 
   return (
     <div className="min-h-screen bg-background p-4 space-y-4">
