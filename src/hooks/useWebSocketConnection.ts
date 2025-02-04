@@ -17,63 +17,78 @@ export const useWebSocketConnection = ({ url, onMessage, onError }: WebSocketCon
 
   const connect = useCallback(() => {
     if (isCleaningUpRef.current) {
-      console.log('Skipping connection attempt during cleanup');
+      console.log('[WebSocket] Skipping connection attempt during cleanup');
       return;
     }
 
     try {
-      console.log('Attempting WebSocket connection to:', url);
+      console.log('[WebSocket] Attempting connection to:', url);
+      
+      // Prevent multiple connection attempts
       if (wsRef.current?.readyState === WebSocket.CONNECTING) {
-        console.log('Connection already in progress, skipping');
+        console.log('[WebSocket] Connection already in progress');
         return;
+      }
+
+      // Close existing connection if any
+      if (wsRef.current) {
+        console.log('[WebSocket] Closing existing connection');
+        wsRef.current.close();
       }
 
       wsRef.current = new WebSocket(url);
 
       wsRef.current.onopen = () => {
-        console.log('WebSocket connected successfully');
+        console.log('[WebSocket] Connected successfully');
         setIsConnected(true);
         reconnectAttemptsRef.current = 0;
         toast.success('Connected to chat server');
       };
 
-      wsRef.current.onclose = () => {
-        console.log('WebSocket connection closed');
+      wsRef.current.onclose = (event) => {
+        console.log('[WebSocket] Connection closed', event);
         setIsConnected(false);
         
         if (!isCleaningUpRef.current && reconnectAttemptsRef.current < maxReconnectAttempts) {
-          console.log(`Attempting reconnect ${reconnectAttemptsRef.current + 1}/${maxReconnectAttempts}`);
+          console.log(`[WebSocket] Attempting reconnect ${reconnectAttemptsRef.current + 1}/${maxReconnectAttempts}`);
+          
+          // Clear any existing reconnect timeout
+          if (reconnectTimeoutRef.current) {
+            clearTimeout(reconnectTimeoutRef.current);
+          }
+          
           reconnectTimeoutRef.current = setTimeout(() => {
             reconnectAttemptsRef.current += 1;
             connect();
-          }, 2000);
+          }, 2000 * Math.pow(2, reconnectAttemptsRef.current)); // Exponential backoff
         } else if (!isCleaningUpRef.current) {
-          console.log('Max reconnection attempts reached');
+          console.log('[WebSocket] Max reconnection attempts reached');
           toast.error('Unable to connect to chat server. Please refresh the page.');
         }
       };
 
       wsRef.current.onerror = (error) => {
-        console.error('WebSocket error:', error);
+        console.error('[WebSocket] Error:', error);
+        toast.error('Connection error occurred');
         onError?.(error);
       };
 
       wsRef.current.onmessage = (event) => {
-        console.log('WebSocket message received:', event.data);
+        console.log('[WebSocket] Message received:', event.data);
         onMessage?.(event);
       };
     } catch (error) {
-      console.error('Error creating WebSocket connection:', error);
+      console.error('[WebSocket] Error creating connection:', error);
       toast.error('Failed to connect to chat server');
     }
   }, [url, onMessage, onError]);
 
   const sendMessage = useCallback((message: any) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
-      console.log('Sending WebSocket message:', message);
+      console.log('[WebSocket] Sending message:', message);
       wsRef.current.send(JSON.stringify(message));
     } else {
-      console.warn('WebSocket is not connected, message not sent:', message);
+      console.warn('[WebSocket] Cannot send message - not connected:', message);
       toast.error('Not connected to chat server');
     }
   }, []);
@@ -82,7 +97,7 @@ export const useWebSocketConnection = ({ url, onMessage, onError }: WebSocketCon
     connect();
 
     return () => {
-      console.log('Cleaning up WebSocket connection');
+      console.log('[WebSocket] Cleaning up connection');
       isCleaningUpRef.current = true;
       
       if (reconnectTimeoutRef.current) {
