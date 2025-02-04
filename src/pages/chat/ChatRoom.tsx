@@ -29,10 +29,12 @@ const ChatRoom = () => {
     clearTranscript
   } = useSpeechRecognition();
 
+  const avatarUrl = faker.image.avatar();
   const currentUser = {
     id: faker.string.uuid(),
     name: faker.person.fullName(),
-    image: faker.image.avatar(),
+    avatar: avatarUrl,  // for User type
+    image: avatarUrl,   // for Participant type
     status: 'online' as const
   };
 
