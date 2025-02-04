@@ -27,7 +27,10 @@ const TranscriptionDisplay = ({
   useEffect(() => {
     if (scrollRef.current && autoScroll) {
       const scrollElement = scrollRef.current;
-      scrollElement.scrollTop = scrollElement.scrollHeight;
+      scrollElement.scrollTo({
+        top: scrollElement.scrollHeight,
+        behavior: 'smooth'
+      });
     }
   }, [transcript, autoScroll]);
 
@@ -50,70 +53,79 @@ const TranscriptionDisplay = ({
           transition={{ duration: 0.3 }}
           className="mt-4"
         >
-          <Card 
-            className="p-4 bg-secondary/50 border-2 border-primary/20 relative"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <h3 className="font-semibold text-primary flex items-center gap-2">
-                  <Mic className={`w-4 h-4 ${isRecording ? 'text-green-500 animate-pulse' : 'text-gray-400'}`} />
-                  Transcription en direct
-                </h3>
-                {isRecording && (
-                  <span className="inline-block w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+          <Card className="relative overflow-hidden bg-black border-2 border-primary/20">
+            {/* Header avec contrôles */}
+            <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-background to-transparent p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-semibold text-primary flex items-center gap-2">
+                    <Mic className={`w-4 h-4 ${isRecording ? 'text-red-500 animate-pulse' : 'text-gray-400'}`} />
+                    Transcription en direct
+                  </h3>
+                  {isRecording && (
+                    <span className="inline-block w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                  )}
+                </div>
+                
+                {onLanguageChange && (
+                  <div className="flex items-center gap-2">
+                    <Languages className="w-4 h-4 text-muted-foreground" />
+                    <Select
+                      value={currentLanguage}
+                      onValueChange={onLanguageChange}
+                    >
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Sélectionner une langue" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(availableLanguages).map(([code, name]) => (
+                          <SelectItem key={code} value={code}>
+                            {name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 )}
               </div>
-              
-              {onLanguageChange && (
-                <div className="flex items-center gap-2">
-                  <Languages className="w-4 h-4 text-muted-foreground" />
-                  <Select
-                    value={currentLanguage}
-                    onValueChange={onLanguageChange}
-                  >
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Sélectionner une langue" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(availableLanguages).map(([code, name]) => (
-                        <SelectItem key={code} value={code}>
-                          {name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
             </div>
-            
+
+            {/* Zone de transcription avec effet prompteur */}
             <div 
               ref={scrollRef}
               onScroll={handleScroll}
-              className="max-h-[40vh] overflow-y-auto relative scroll-smooth"
+              className="max-h-[40vh] overflow-y-auto relative scroll-smooth pt-20 pb-16"
+              style={{
+                maskImage: 'linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%)',
+                WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%)'
+              }}
             >
-              <p className="text-sm whitespace-pre-line leading-relaxed text-foreground/90 p-2">
-                {transcript || (isRecording ? 'En attente de parole...' : 'Aucune transcription disponible')}
-              </p>
-              
-              {!isNearBottom && (
-                <div className="sticky bottom-0 right-0 p-2 flex justify-end bg-gradient-to-t from-background/80 to-transparent">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setAutoScroll(true);
-                      scrollRef.current?.scrollTo({ 
-                        top: scrollRef.current.scrollHeight, 
-                        behavior: 'smooth' 
-                      });
-                    }}
-                    className="text-xs"
-                  >
-                    ↓ Défiler vers le bas
-                  </Button>
-                </div>
-              )}
+              <div className="p-6 space-y-2">
+                <p className="text-lg whitespace-pre-line leading-relaxed text-primary font-medium text-center px-8">
+                  {transcript || (isRecording ? 'En attente de parole...' : 'Aucune transcription disponible')}
+                </p>
+              </div>
             </div>
+
+            {/* Overlay du bas avec bouton de défilement */}
+            {!isNearBottom && (
+              <div className="absolute bottom-0 left-0 right-0 p-2 flex justify-center bg-gradient-to-t from-background to-transparent">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => {
+                    setAutoScroll(true);
+                    scrollRef.current?.scrollTo({ 
+                      top: scrollRef.current.scrollHeight, 
+                      behavior: 'smooth' 
+                    });
+                  }}
+                  className="text-xs opacity-80 hover:opacity-100"
+                >
+                  ↓ Défiler vers le bas
+                </Button>
+              </div>
+            )}
           </Card>
         </motion.div>
       )}
