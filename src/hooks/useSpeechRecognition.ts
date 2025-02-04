@@ -6,11 +6,11 @@ export const useSpeechRecognition = () => {
   const [transcript, setTranscript] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const recognitionRef = useRef<any>(null);
-  const restartTimeoutRef = useRef<NodeJS.Timeout>();
+  const isCleaningUpRef = useRef(false);
 
   const initRecognition = useCallback(() => {
     if (!('webkitSpeechRecognition' in window)) {
-      toast.error('Speech recognition is not supported in this browser');
+      toast.error("La reconnaissance vocale n'est pas supportée par ce navigateur");
       return null;
     }
 
@@ -18,63 +18,54 @@ export const useSpeechRecognition = () => {
     recognition.continuous = true;
     recognition.interimResults = true;
     recognition.lang = 'fr-FR';
+    recognition.maxAlternatives = 1;
 
     recognition.onstart = () => {
-      console.log('Speech recognition started');
+      console.log('Reconnaissance vocale démarrée');
       setIsRecording(true);
-      toast.success('Voice recording started');
     };
 
     recognition.onresult = (event: any) => {
-      let currentTranscript = '';
+      let interimTranscript = '';
+      let finalTranscript = '';
+
       for (let i = event.resultIndex; i < event.results.length; ++i) {
-        const result = event.results[i][0].transcript;
+        const transcript = event.results[i][0].transcript;
         if (event.results[i].isFinal) {
-          const formattedResult = formatFrenchText(result);
-          currentTranscript += formattedResult;
-          console.log('Final transcript:', formattedResult);
+          finalTranscript += transcript;
         } else {
-          currentTranscript += result;
-          console.log('Interim transcript:', result);
+          interimTranscript += transcript;
         }
       }
-      
-      if (currentTranscript) {
+
+      if (finalTranscript) {
         setTranscript(prev => {
-          const newTranscript = prev ? `${prev} ${currentTranscript}` : currentTranscript;
-          console.log('Updated transcript:', newTranscript);
-          return newTranscript;
+          const formattedTranscript = formatFrenchText(finalTranscript);
+          return prev ? `${prev} ${formattedTranscript}` : formattedTranscript;
+        });
+      } else if (interimTranscript) {
+        setTranscript(prev => {
+          const lastSentence = prev.split('.').pop() || '';
+          return prev.replace(lastSentence, '') + interimTranscript;
         });
       }
     };
 
     recognition.onerror = (event: any) => {
-      console.error('Speech recognition error:', event.error);
-      if (event.error !== 'no-speech') {
-        toast.error(`Speech recognition error: ${event.error}`);
-      }
-      
-      if (isRecording) {
-        restartTimeoutRef.current = setTimeout(() => {
-          console.log('Attempting to restart speech recognition after error');
-          try {
-            recognition.start();
-          } catch (error) {
-            console.error('Failed to restart speech recognition:', error);
-            setIsRecording(false);
-          }
-        }, 1000);
+      console.error('Erreur de reconnaissance vocale:', event.error);
+      if (event.error !== 'no-speech' && !isCleaningUpRef.current) {
+        toast.error(`Erreur de reconnaissance vocale: ${event.error}`);
       }
     };
 
     recognition.onend = () => {
-      console.log('Speech recognition ended');
-      if (isRecording) {
-        console.log('Restarting speech recognition');
+      console.log('Reconnaissance vocale terminée');
+      if (isRecording && !isCleaningUpRef.current) {
+        console.log('Redémarrage de la reconnaissance vocale');
         try {
           recognition.start();
         } catch (error) {
-          console.error('Error restarting speech recognition:', error);
+          console.error('Erreur lors du redémarrage:', error);
           setIsRecording(false);
         }
       }
@@ -89,26 +80,23 @@ export const useSpeechRecognition = () => {
       if (recognitionRef.current) {
         try {
           recognitionRef.current.start();
-          console.log('Initial speech recognition started');
         } catch (error) {
-          console.error('Error starting initial speech recognition:', error);
+          console.error('Erreur au démarrage initial:', error);
           setIsRecording(false);
         }
       }
     }
 
     return () => {
-      if (restartTimeoutRef.current) {
-        clearTimeout(restartTimeoutRef.current);
-      }
       if (recognitionRef.current) {
+        isCleaningUpRef.current = true;
         try {
           recognitionRef.current.stop();
-          recognitionRef.current = null;
-          console.log('Speech recognition cleanup');
         } catch (error) {
-          console.error('Error stopping speech recognition:', error);
+          console.error('Erreur lors de l\'arrêt:', error);
         }
+        recognitionRef.current = null;
+        isCleaningUpRef.current = false;
       }
     };
   }, [isRecording, initRecognition]);
@@ -124,7 +112,7 @@ export const useSpeechRecognition = () => {
         recognitionRef.current.stop();
         recognitionRef.current = null;
       } catch (error) {
-        console.error('Error stopping speech recognition:', error);
+        console.error('Erreur lors de l\'arrêt:', error);
       }
     }
   }, []);

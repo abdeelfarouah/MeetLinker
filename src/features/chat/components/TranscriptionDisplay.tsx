@@ -11,6 +11,7 @@ interface TranscriptionDisplayProps {
 const TranscriptionDisplay = ({ transcript, isRecording = false }: TranscriptionDisplayProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [autoScroll, setAutoScroll] = useState(true);
+  const [isNearBottom, setIsNearBottom] = useState(true);
 
   useEffect(() => {
     if (scrollRef.current && autoScroll) {
@@ -22,8 +23,9 @@ const TranscriptionDisplay = ({ transcript, isRecording = false }: Transcription
   const handleScroll = () => {
     if (scrollRef.current) {
       const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
-      const isNearBottom = scrollHeight - scrollTop - clientHeight < 50;
-      setAutoScroll(isNearBottom);
+      const bottom = scrollHeight - scrollTop - clientHeight < 50;
+      setIsNearBottom(bottom);
+      setAutoScroll(bottom);
     }
   };
 
@@ -40,7 +42,7 @@ const TranscriptionDisplay = ({ transcript, isRecording = false }: Transcription
           <Card 
             ref={scrollRef}
             onScroll={handleScroll}
-            className="p-4 max-h-40 overflow-y-auto bg-secondary/50 border-2 border-primary/20 relative"
+            className="p-4 max-h-[40vh] overflow-y-auto bg-secondary/50 border-2 border-primary/20 relative scroll-smooth"
           >
             <div className="flex items-center justify-between mb-2">
               <h3 className="font-semibold text-primary flex items-center gap-2">
@@ -54,9 +56,28 @@ const TranscriptionDisplay = ({ transcript, isRecording = false }: Transcription
                 </div>
               )}
             </div>
-            <p className="text-sm whitespace-pre-line leading-relaxed text-foreground/90">
-              {transcript || (isRecording ? 'En attente de parole...' : 'Aucune transcription disponible')}
-            </p>
+            
+            <div className="relative">
+              <p className="text-sm whitespace-pre-line leading-relaxed text-foreground/90">
+                {transcript || (isRecording ? 'En attente de parole...' : 'Aucune transcription disponible')}
+              </p>
+              
+              {!isNearBottom && (
+                <div className="absolute bottom-0 right-0 p-2">
+                  <motion.button
+                    onClick={() => {
+                      setAutoScroll(true);
+                      scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
+                    }}
+                    className="text-xs text-primary hover:text-primary/80 transition-colors"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    ↓ Défiler vers le bas
+                  </motion.button>
+                </div>
+              )}
+            </div>
           </Card>
         </motion.div>
       )}
