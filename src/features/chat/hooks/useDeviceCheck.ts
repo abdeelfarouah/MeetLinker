@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "@/components/ui/use-toast";
 
 const MEDIA_TIMEOUT = 10000;
@@ -8,6 +8,7 @@ export const useDeviceCheck = () => {
   const [isVideoWorking, setIsVideoWorking] = useState(false);
   const [isAudioWorking, setIsAudioWorking] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasInitialized, setHasInitialized] = useState(false);
 
   const checkDeviceSupport = async () => {
     console.log("Checking device support...");
@@ -55,6 +56,11 @@ export const useDeviceCheck = () => {
   };
 
   const startDeviceCheck = async () => {
+    if (hasInitialized) {
+      console.log("Device check already initialized, skipping...");
+      return;
+    }
+
     console.log("Starting device check...");
     setIsLoading(true);
     setIsVideoWorking(false);
@@ -112,8 +118,21 @@ export const useDeviceCheck = () => {
       });
     } finally {
       setIsLoading(false);
+      setHasInitialized(true);
     }
   };
+
+  useEffect(() => {
+    startDeviceCheck();
+    
+    return () => {
+      if (videoStream) {
+        console.log("Cleaning up video stream");
+        videoStream.getTracks().forEach(track => track.stop());
+        setVideoStream(null);
+      }
+    };
+  }, []);
 
   return {
     videoStream,
