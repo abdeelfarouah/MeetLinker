@@ -14,10 +14,8 @@ import ChatUI from '@/components/chat/ChatUI';
 
 const queryClient = new QueryClient();
 
-// Wrapper component to conditionally render ChatUI
 const ChatUIWrapper = () => {
   const location = useLocation();
-  // Only show ChatUI on pre-entrance route, not on chat routes
   const shouldShowChatUI = location.pathname.includes('/pre-entrance');
   
   console.log('Current route:', location.pathname, 'Should show ChatUI:', shouldShowChatUI);
@@ -32,22 +30,17 @@ function App() {
         <TooltipProvider>
           <BrowserRouter>
             <Routes>
-              {/* Landing page for non-authenticated users */}
-              <Route 
-                path="/" 
-                element={
-                  <PublicRoute>
-                    <LandingPage />
-                  </PublicRoute>
-                } 
-              />
+              {/* Redirection par défaut vers la landing page */}
+              <Route path="/" element={<Navigate to="/landing" replace />} />
               
-              {/* Public routes */}
-              <Route path="/landing" element={<PublicRoute><LandingPage /></PublicRoute>} />
+              {/* Landing page accessible à tous */}
+              <Route path="/landing" element={<LandingPage />} />
+              
+              {/* Routes d'authentification */}
               <Route path="/auth/login" element={<PublicRoute><Login /></PublicRoute>} />
               <Route path="/auth/register" element={<PublicRoute><Register /></PublicRoute>} />
               
-              {/* Protected routes */}
+              {/* Routes protégées */}
               <Route 
                 path="/chat" 
                 element={
@@ -95,7 +88,7 @@ const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   return children;
 };
 
-// Route guard for public routes (login/register/landing)
+// Route guard for public routes (login/register)
 const PublicRoute = ({ children }: { children: JSX.Element }) => {
   const { isAuthenticated } = useAuth();
   console.log("Public route check - isAuthenticated:", isAuthenticated);
