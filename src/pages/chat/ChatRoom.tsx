@@ -10,13 +10,8 @@ import ParticipantsList from '@/features/chat/components/ParticipantsList';
 import { useMediaStream } from '@/hooks/useMediaStream';
 import { useMessages } from '@/hooks/useMessages';
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
+import { useWebSocketConnection } from '@/hooks/useWebSocketConnection';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
-
-// Generate a consistent avatar URL for a given seed
-const generateConsistentAvatar = (seed: string) => {
-  faker.seed(seed.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0));
-  return faker.image.avatar();
-};
 
 const ChatRoom = () => {
   const {
@@ -36,9 +31,9 @@ const ChatRoom = () => {
     clearTranscript
   } = useSpeechRecognition();
 
-  // Generate fake user data using faker with consistent avatar
+  // Générer des données utilisateur factices avec un avatar cohérent
   const userId = faker.string.uuid();
-  const avatarUrl = generateConsistentAvatar(userId);
+  const avatarUrl = faker.image.avatar();
   const currentUser = {
     id: userId,
     name: faker.person.fullName(),
@@ -49,6 +44,18 @@ const ChatRoom = () => {
 
   const { messages, handleSendMessage } = useMessages(currentUser.name);
 
+  // Utilisation du nouveau hook WebSocket
+  const { isConnected, sendMessage } = useWebSocketConnection({
+    url: `wss://${window.location.hostname}`,
+    onMessage: (event) => {
+      console.log('Message reçu:', event.data);
+      // Traiter le message reçu si nécessaire
+    },
+    onError: (error) => {
+      console.error('Erreur WebSocket:', error);
+    }
+  });
+
   const handleToggleRecording = () => {
     if (isRecording) {
       stopRecording();
@@ -58,7 +65,20 @@ const ChatRoom = () => {
     }
   };
 
-  console.log('Transcription state:', { isRecording, transcript }); // Debug log
+  // Envoyer un message via WebSocket
+  const handleMessageSubmit = (content: string) => {
+    handleSendMessage(content);
+    if (isConnected) {
+      sendMessage({
+        type: 'chat_message',
+        content,
+        userId,
+        timestamp: new Date().toISOString()
+      });
+    }
+  };
+
+  console.log('État de la transcription:', { isRecording, transcript });
 
   return (
     <div className="min-h-screen bg-background p-4 space-y-4">
@@ -103,7 +123,7 @@ const ChatRoom = () => {
                       currentUser={currentUser}
                     />
                     <MessageInput 
-                      onSendMessage={handleSendMessage} 
+                      onSendMessage={handleMessageSubmit}
                     />
                   </Card>
                 </div>
