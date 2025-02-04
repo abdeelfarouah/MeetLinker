@@ -10,6 +10,7 @@ import { faker } from '@faker-js/faker/locale/fr';
 import { toast } from 'sonner';
 import { encryptMessage, decryptMessage } from '@/utils/crypto';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
+import type { Message } from '@/types/chat';
 
 const ChatRoom = () => {
   const [messages, setMessages] = useState<Message[]>([]);
