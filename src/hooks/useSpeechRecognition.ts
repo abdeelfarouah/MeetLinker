@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
+import { formatFrenchText } from '../utils/frenchTextFormatting';
 
 export const useSpeechRecognition = () => {
   const [transcript, setTranscript] = useState('');
@@ -22,39 +23,8 @@ export const useSpeechRecognition = () => {
       for (let i = event.resultIndex; i < event.results.length; ++i) {
         const result = event.results[i][0].transcript;
         
-        // Format the transcript with proper French punctuation
-        let formattedResult = result;
-        
-        // Add space before question and exclamation marks (French rule)
-        formattedResult = formattedResult.replace(/([?!])/g, ' $1');
-        
-        // Capitalize first letter of sentences
-        formattedResult = formattedResult.replace(/(^\w|[.!?]\s+\w)/g, letter => letter.toUpperCase());
-        
-        // Add proper spacing for other punctuation
-        formattedResult = formattedResult.replace(/([,;:])\s*/g, '$1 ');
-        
-        // Remove extra spaces while preserving space before ? and !
-        formattedResult = formattedResult.replace(/\s+/g, ' ').trim();
-        
         if (event.results[i].isFinal) {
-          // Add proper ending punctuation if missing
-          if (!/[.!?]$/.test(formattedResult)) {
-            // Check if the sentence seems like a question
-            if (formattedResult.toLowerCase().startsWith('qui ') || 
-                formattedResult.toLowerCase().startsWith('que ') || 
-                formattedResult.toLowerCase().startsWith('quoi ') || 
-                formattedResult.toLowerCase().startsWith('quel ') || 
-                formattedResult.toLowerCase().startsWith('quelle ') || 
-                formattedResult.toLowerCase().startsWith('quand ') || 
-                formattedResult.toLowerCase().startsWith('où ') || 
-                formattedResult.toLowerCase().startsWith('comment ') || 
-                formattedResult.toLowerCase().startsWith('pourquoi ')) {
-              formattedResult += ' ?';
-            } else {
-              formattedResult += '.';
-            }
-          }
+          const formattedResult = formatFrenchText(result);
           currentTranscript += formattedResult;
           console.log('Speech recognition result:', formattedResult);
         }
