@@ -1,8 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { toast } from 'sonner';
-
-const MAX_RECONNECT_ATTEMPTS = 5;
-const RECONNECT_INTERVAL = 3000;
 
 interface WebSocketConfig {
   url: string;
@@ -11,81 +8,83 @@ interface WebSocketConfig {
 }
 
 export const useWebSocketConnection = ({ url, onMessage, onError }: WebSocketConfig) => {
-  const [ws, setWs] = useState<WebSocket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
-  const [reconnectAttempts, setReconnectAttempts] = useState(0);
+  const wsRef = useRef<WebSocket | null>(null);
+  const reconnectAttemptsRef = useRef(0);
+  const maxReconnectAttempts = 3;
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
 
   const connect = useCallback(() => {
     try {
-      const socket = new WebSocket(url);
-      
-      socket.onopen = () => {
+      console.log('Attempting WebSocket connection to:', url);
+      wsRef.current = new WebSocket(url);
+
+      wsRef.current.onopen = () => {
         console.log('WebSocket connected successfully');
         setIsConnected(true);
-        setReconnectAttempts(0);
-        toast.success('Connexion établie');
+        reconnectAttemptsRef.current = 0;
+        toast.success('Connected to chat server');
       };
 
-      socket.onclose = () => {
+      wsRef.current.onclose = () => {
         console.log('WebSocket connection closed');
         setIsConnected(false);
         
-        if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-          setTimeout(() => {
-            console.log(`Tentative de reconnexion ${reconnectAttempts + 1}/${MAX_RECONNECT_ATTEMPTS}`);
-            setReconnectAttempts(prev => prev + 1);
+        if (reconnectAttemptsRef.current < maxReconnectAttempts) {
+          console.log(`Attempting reconnect ${reconnectAttemptsRef.current + 1}/${maxReconnectAttempts}`);
+          reconnectTimeoutRef.current = setTimeout(() => {
+            reconnectAttemptsRef.current += 1;
             connect();
-          }, RECONNECT_INTERVAL);
+          }, 2000);
         } else {
-          toast.error('La connexion a été perdue. Veuillez rafraîchir la page.');
+          console.log('Max reconnection attempts reached');
+          toast.error('Unable to connect to chat server. Please refresh the page.');
         }
       };
 
-      socket.onerror = (error) => {
+      wsRef.current.onerror = (error) => {
         console.error('WebSocket error:', error);
-        if (onError) onError(error);
-        toast.error('Erreur de connexion');
+        onError?.(error);
       };
 
-      socket.onmessage = (event) => {
-        if (onMessage) onMessage(event);
+      wsRef.current.onmessage = (event) => {
+        console.log('WebSocket message received:', event.data);
+        onMessage?.(event);
       };
-
-      setWs(socket);
     } catch (error) {
-      console.error('Failed to create WebSocket connection:', error);
-      toast.error('Impossible d\'établir la connexion');
+      console.error('Error creating WebSocket connection:', error);
+      toast.error('Failed to connect to chat server');
     }
-  }, [url, onMessage, onError, reconnectAttempts]);
+  }, [url, onMessage, onError]);
+
+  const sendMessage = useCallback((message: any) => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      console.log('Sending WebSocket message:', message);
+      wsRef.current.send(JSON.stringify(message));
+    } else {
+      console.warn('WebSocket is not connected, message not sent:', message);
+      toast.error('Not connected to chat server');
+    }
+  }, []);
 
   useEffect(() => {
     connect();
-    
+
     return () => {
-      if (ws) {
-        console.log('Cleaning up WebSocket connection');
-        ws.close();
+      console.log('Cleaning up WebSocket connection');
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
       }
+      if (wsRef.current) {
+        wsRef.current.close();
+        wsRef.current = null;
+      }
+      reconnectAttemptsRef.current = maxReconnectAttempts; // Prevent reconnection attempts during cleanup
     };
   }, [connect]);
-
-  const sendMessage = useCallback((message: string | object) => {
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      try {
-        ws.send(typeof message === 'string' ? message : JSON.stringify(message));
-      } catch (error) {
-        console.error('Error sending message:', error);
-        toast.error('Erreur lors de l\'envoi du message');
-      }
-    } else {
-      console.warn('WebSocket is not connected');
-      toast.error('La connexion n\'est pas établie');
-    }
-  }, [ws]);
 
   return {
     isConnected,
     sendMessage,
-    reconnectAttempts
   };
 };
