@@ -4,27 +4,15 @@
 
 @layer base {
   :root {
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
     --radius: 0.5rem;
   }
-}
 
-@layer base {
   html, body {
-    @apply h-full;
+    @apply h-full antialiased;
   }
 
   body {
-    @apply bg-white;
+    @apply bg-background text-foreground;
   }
 
   #root {
@@ -33,19 +21,18 @@
 }
 
 .scrollable {
-  @apply overflow-y-auto overflow-x-hidden;
   scrollbar-width: thin;
-  scrollbar-color: #a0aec0 #edf2f7;
+  scrollbar-color: hsl(215.4 16.3% 46.9%) hsl(210 40% 96.1%);
 }
 
 .scrollable::-webkit-scrollbar {
-  width: 6px;
+  @apply w-1.5;
 }
 
 .scrollable::-webkit-scrollbar-track {
-  @apply bg-gray-100;
+  @apply bg-muted rounded-full;
 }
 
 .scrollable::-webkit-scrollbar-thumb {
-  @apply bg-gray-400 rounded;
+  @apply bg-muted-foreground/50 rounded-full hover:bg-muted-foreground/70 transition-colors;
 }
