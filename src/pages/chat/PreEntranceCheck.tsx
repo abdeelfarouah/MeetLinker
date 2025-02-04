@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { toast } from "@/components/ui/toast";
+import { toast } from "@/hooks/use-toast";
 import { Card } from "@/components/ui/card";
 import DeviceStatus from "@/features/chat/components/DeviceStatus";
 import VideoPreview from "@/features/chat/components/VideoPreview";
