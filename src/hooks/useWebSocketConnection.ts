@@ -9,11 +9,20 @@ interface WebSocketConfig {
 
 export const useWebSocketConnection = ({ url, onMessage, onError }: WebSocketConfig) => {
   const [isConnected, setIsConnected] = useState(false);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectAttemptsRef = useRef(0);
   const maxReconnectAttempts = 3;
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
   const isCleaningUpRef = useRef(false);
+
+  const handleConnectionError = useCallback((error: Event) => {
+    console.error('[WebSocket] Connection error:', error);
+    setConnectionError('Failed to establish connection');
+    setIsConnected(false);
+    toast.error('Connection error occurred. Attempting to reconnect...');
+    onError?.(error);
+  }, [onError]);
 
   const connect = useCallback(() => {
     if (isCleaningUpRef.current) {
@@ -22,6 +31,9 @@ export const useWebSocketConnection = ({ url, onMessage, onError }: WebSocketCon
     }
 
     try {
+      // Reset connection error state
+      setConnectionError(null);
+      
       console.log('[WebSocket] Attempting connection to:', url);
       
       // Prevent multiple connection attempts
@@ -34,22 +46,26 @@ export const useWebSocketConnection = ({ url, onMessage, onError }: WebSocketCon
       if (wsRef.current) {
         console.log('[WebSocket] Closing existing connection');
         wsRef.current.close();
+        wsRef.current = null;
       }
 
-      wsRef.current = new WebSocket(url);
+      const ws = new WebSocket(url);
+      wsRef.current = ws;
 
-      wsRef.current.onopen = () => {
+      ws.onopen = () => {
         console.log('[WebSocket] Connected successfully');
         setIsConnected(true);
+        setConnectionError(null);
         reconnectAttemptsRef.current = 0;
         toast.success('Connected to chat server');
       };
 
-      wsRef.current.onclose = (event) => {
+      ws.onclose = (event) => {
         console.log('[WebSocket] Connection closed', event);
         setIsConnected(false);
         
-        if (!isCleaningUpRef.current && reconnectAttemptsRef.current < maxReconnectAttempts) {
+        // Only attempt reconnection if it wasn't a clean closure and we haven't reached max attempts
+        if (!event.wasClean && !isCleaningUpRef.current && reconnectAttemptsRef.current < maxReconnectAttempts) {
           console.log(`[WebSocket] Attempting reconnect ${reconnectAttemptsRef.current + 1}/${maxReconnectAttempts}`);
           
           // Clear any existing reconnect timeout
@@ -57,31 +73,30 @@ export const useWebSocketConnection = ({ url, onMessage, onError }: WebSocketCon
             clearTimeout(reconnectTimeoutRef.current);
           }
           
+          const backoffTime = Math.min(1000 * Math.pow(2, reconnectAttemptsRef.current), 10000);
           reconnectTimeoutRef.current = setTimeout(() => {
             reconnectAttemptsRef.current += 1;
             connect();
-          }, 2000 * Math.pow(2, reconnectAttemptsRef.current)); // Exponential backoff
+          }, backoffTime);
         } else if (!isCleaningUpRef.current) {
           console.log('[WebSocket] Max reconnection attempts reached');
+          setConnectionError('Unable to establish a stable connection');
           toast.error('Unable to connect to chat server. Please refresh the page.');
         }
       };
 
-      wsRef.current.onerror = (error) => {
-        console.error('[WebSocket] Error:', error);
-        toast.error('Connection error occurred');
-        onError?.(error);
-      };
+      ws.onerror = handleConnectionError;
 
-      wsRef.current.onmessage = (event) => {
+      ws.onmessage = (event) => {
         console.log('[WebSocket] Message received:', event.data);
         onMessage?.(event);
       };
     } catch (error) {
       console.error('[WebSocket] Error creating connection:', error);
+      setConnectionError('Failed to create connection');
       toast.error('Failed to connect to chat server');
     }
-  }, [url, onMessage, onError]);
+  }, [url, onMessage, handleConnectionError]);
 
   const sendMessage = useCallback((message: any) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
@@ -113,6 +128,7 @@ export const useWebSocketConnection = ({ url, onMessage, onError }: WebSocketCon
 
   return {
     isConnected,
+    connectionError,
     sendMessage,
   };
 };
