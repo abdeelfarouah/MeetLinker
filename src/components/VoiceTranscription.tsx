@@ -52,45 +52,39 @@ const VoiceTranscription: React.FC<VoiceTranscriptionProps> = ({ stream, isMuted
       console.error('Speech recognition error:', event.error);
       setIsTranscribing(false);
       
-      // Restart recognition after error if not muted
-      if (!isMuted) {
-        setTimeout(() => {
-          try {
-            recognitionInstance.start();
-          } catch (error) {
-            console.error('Error restarting after error:', error);
-          }
-        }, 1000);
-      }
+      // Always restart after error, regardless of mute state
+      setTimeout(() => {
+        try {
+          recognitionInstance.start();
+        } catch (error) {
+          console.error('Error restarting after error:', error);
+        }
+      }, 1000);
     });
 
     recognitionInstance.addEventListener('end', () => {
-      console.log('Speech recognition ended, attempting restart...');
+      console.log('Speech recognition ended, restarting...');
       setIsTranscribing(false);
       
-      // Only restart if not muted and recognition is still needed
-      if (!isMuted) {
-        setTimeout(() => {
-          try {
-            recognitionInstance.start();
-            console.log('Speech recognition restarted successfully');
-          } catch (error) {
-            console.error('Error restarting speech recognition:', error);
-          }
-        }, 100);
-      }
+      // Always restart, regardless of mute state
+      setTimeout(() => {
+        try {
+          recognitionInstance.start();
+          console.log('Speech recognition restarted successfully');
+        } catch (error) {
+          console.error('Error restarting speech recognition:', error);
+        }
+      }, 100);
     });
 
     setRecognition(recognitionInstance);
 
-    // Start recognition if not muted
-    if (!isMuted) {
-      try {
-        recognitionInstance.start();
-        console.log('Initial speech recognition started');
-      } catch (error) {
-        console.error('Error starting initial speech recognition:', error);
-      }
+    // Start recognition immediately
+    try {
+      recognitionInstance.start();
+      console.log('Initial speech recognition started');
+    } catch (error) {
+      console.error('Error starting initial speech recognition:', error);
     }
 
     return () => {
@@ -101,9 +95,7 @@ const VoiceTranscription: React.FC<VoiceTranscriptionProps> = ({ stream, isMuted
         console.error('Error stopping speech recognition:', error);
       }
     };
-  }, [stream, isMuted]);
-
-  if (!stream || isMuted) return null;
+  }, [stream]); // Removed isMuted from dependencies to prevent restarts
 
   return (
     <div className="mt-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
