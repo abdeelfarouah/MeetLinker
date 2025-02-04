@@ -32,7 +32,7 @@ const ChatRoom = () => {
   const currentUser = {
     id: faker.string.uuid(),
     name: faker.person.fullName(),
-    avatar: faker.image.avatar(),
+    image: faker.image.avatar(),
     status: 'online' as const
   };
 
