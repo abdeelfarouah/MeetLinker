@@ -9,5 +9,5 @@ export interface Participant {
   id: string;
   name: string;
   image: string;
-  status: 'online' | 'offline' | 'away';
+  status: 'online' | 'offline' | 'no-response';
 }

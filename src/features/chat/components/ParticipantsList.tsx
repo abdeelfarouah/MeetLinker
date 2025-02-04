@@ -2,13 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { faker } from '@faker-js/faker';
-
-type Participant = {
-  id: string;
-  name: string;
-  avatar: string;
-  status: 'online' | 'offline' | 'away';
-};
+import type { Participant } from '@/types/chat';
 
 interface ParticipantsListProps {
   participants: Participant[];
@@ -42,9 +36,9 @@ const ParticipantsList = ({ participants, currentUser }: ParticipantsListProps) 
                   className={cn(
                     "absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-background",
                     {
-                      "bg-status-online": participant.status === "online",
-                      "bg-status-offline": participant.status === "offline",
-                      "bg-status-away": participant.status === "away",
+                      "bg-green-500": participant.status === "online",
+                      "bg-red-500": participant.status === "offline",
+                      "bg-yellow-500": participant.status === "no-response",
                     }
                   )}
                   aria-label={`Status: ${participant.status}`}
