@@ -31,7 +31,7 @@ const ParticipantList: React.FC<ParticipantListProps> = ({ participants }) => {
         <ul className="space-y-3">
           {participants.map((participant) => {
             // Generate consistent avatar based on participant ID
-            const avatarUrl = generateConsistentAvatar(`participant-${participant.id}`);
+            const avatarUrl = generateConsistentAvatar(participant.id);
             
             return (
               <li key={participant.id} className="flex items-center gap-3">
