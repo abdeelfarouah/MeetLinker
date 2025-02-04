@@ -1,3 +1,4 @@
+import React from 'react';
 import { faker } from '@faker-js/faker/locale/fr';
 import { Card } from "@/components/ui/card";
 import VideoStreamsDisplay from '@/components/chat/VideoStreamsDisplay';
@@ -29,6 +30,7 @@ const ChatRoom = () => {
     clearTranscript
   } = useSpeechRecognition();
 
+  // Generate fake user data using faker
   const avatarUrl = faker.image.avatar();
   const currentUser = {
     id: faker.string.uuid(),
