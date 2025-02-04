@@ -17,11 +17,12 @@ const queryClient = new QueryClient();
 // Wrapper component to conditionally render ChatUI
 const ChatUIWrapper = () => {
   const location = useLocation();
-  const isChatRoute = location.pathname.includes('/chat') || location.pathname.includes('/pre-entrance');
+  // Only show ChatUI on pre-entrance route, not on chat routes
+  const shouldShowChatUI = location.pathname.includes('/pre-entrance');
   
-  console.log('Current route:', location.pathname, 'Should show ChatUI:', isChatRoute);
+  console.log('Current route:', location.pathname, 'Should show ChatUI:', shouldShowChatUI);
   
-  return isChatRoute ? <ChatUI /> : null;
+  return shouldShowChatUI ? <ChatUI /> : null;
 };
 
 function App() {
