@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import DarkModeToggle from './DarkModeToggle';
 import ParticipantList from './ParticipantList';
 import ChatBox from './ChatBox';
@@ -186,9 +186,7 @@ const Room: React.FC<RoomProps> = ({ roomCode, handleLogout, currentUser, theme,
         setScreenShareStream(null);
       } else {
         const stream = await navigator.mediaDevices.getDisplayMedia({
-          video: {
-            cursor: "always"
-          },
+          video: true,
           audio: false
         });
         

@@ -17,9 +17,9 @@ const VoiceTranscription: React.FC<VoiceTranscriptionProps> = ({ stream, isMuted
     recognition.continuous = true;
     recognition.interimResults = true;
 
-    recognition.onstart = () => {
+    recognition.addEventListener('start', () => {
       setIsTranscribing(true);
-    };
+    });
 
     recognition.onresult = (event: any) => {
       let finalTranscript = '';
@@ -36,17 +36,17 @@ const VoiceTranscription: React.FC<VoiceTranscriptionProps> = ({ stream, isMuted
       setTranscript(finalTranscript || interimTranscript);
     };
 
-    recognition.onerror = (event: any) => {
+    recognition.addEventListener('error', (event: any) => {
       console.error('Speech recognition error:', event.error);
       setIsTranscribing(false);
-    };
+    });
 
-    recognition.onend = () => {
+    recognition.addEventListener('end', () => {
       setIsTranscribing(false);
       if (!isMuted) {
         recognition.start();
       }
-    };
+    });
 
     if (!isMuted) {
       recognition.start();

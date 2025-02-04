@@ -168,8 +168,10 @@ const ChatRoom = () => {
             <VideoControls
               isVideoOn={isVideoOn}
               isScreenSharing={isScreenSharing}
+              isRecording={false}
               onToggleVideo={startVideo}
               onToggleScreenShare={startScreenShare}
+              onToggleRecording={() => {}}
             />
             {transcription && <TranscriptionDisplay transcript={transcription} />}
           </Card>
