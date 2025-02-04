@@ -22,23 +22,38 @@ export const useSpeechRecognition = () => {
       for (let i = event.resultIndex; i < event.results.length; ++i) {
         const result = event.results[i][0].transcript;
         
-        // Format the transcript with proper capitalization and spacing
+        // Format the transcript with proper French punctuation
         let formattedResult = result;
         
-        // Capitalize first letter of sentences
-        formattedResult = formattedResult.replace(/(^\w|\.\s+\w)/g, letter => letter.toUpperCase());
+        // Add space before question and exclamation marks (French rule)
+        formattedResult = formattedResult.replace(/([?!])/g, ' $1');
         
-        // Add proper spacing after punctuation
-        formattedResult = formattedResult.replace(/([.!?])\s*/g, '$1 ');
+        // Capitalize first letter of sentences
+        formattedResult = formattedResult.replace(/(^\w|[.!?]\s+\w)/g, letter => letter.toUpperCase());
+        
+        // Add proper spacing for other punctuation
         formattedResult = formattedResult.replace(/([,;:])\s*/g, '$1 ');
         
-        // Remove extra spaces
+        // Remove extra spaces while preserving space before ? and !
         formattedResult = formattedResult.replace(/\s+/g, ' ').trim();
         
         if (event.results[i].isFinal) {
           // Add proper ending punctuation if missing
           if (!/[.!?]$/.test(formattedResult)) {
-            formattedResult += '.';
+            // Check if the sentence seems like a question
+            if (formattedResult.toLowerCase().startsWith('qui ') || 
+                formattedResult.toLowerCase().startsWith('que ') || 
+                formattedResult.toLowerCase().startsWith('quoi ') || 
+                formattedResult.toLowerCase().startsWith('quel ') || 
+                formattedResult.toLowerCase().startsWith('quelle ') || 
+                formattedResult.toLowerCase().startsWith('quand ') || 
+                formattedResult.toLowerCase().startsWith('où ') || 
+                formattedResult.toLowerCase().startsWith('comment ') || 
+                formattedResult.toLowerCase().startsWith('pourquoi ')) {
+              formattedResult += ' ?';
+            } else {
+              formattedResult += '.';
+            }
           }
           currentTranscript += formattedResult;
           console.log('Speech recognition result:', formattedResult);
@@ -47,7 +62,6 @@ export const useSpeechRecognition = () => {
       
       if (currentTranscript) {
         setTranscript(prev => {
-          // Add proper spacing between sentences
           const spacing = prev ? ' ' : '';
           return prev + spacing + currentTranscript;
         });
