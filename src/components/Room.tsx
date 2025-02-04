@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { faker } from '@faker-js/faker';
 import DarkModeToggle from './DarkModeToggle';
 import ParticipantList from './ParticipantList';
 import ChatBox from './ChatBox';
@@ -28,39 +29,15 @@ type RoomProps = {
   setTheme: (theme: 'light' | 'dark') => void;
 };
 
-// Fake participants data
-const fakeParticipants: Participant[] = [
-  {
-    id: '1',
-    name: 'Sarah Johnson',
-    image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop',
-    status: 'online'
-  },
-  {
-    id: '2',
-    name: 'Michael Chen',
-    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop',
-    status: 'offline'
-  },
-  {
-    id: '3',
-    name: 'Emily Rodriguez',
-    image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop',
-    status: 'online'
-  },
-  {
-    id: '4',
-    name: 'David Kim',
-    image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop',
-    status: 'no-response'
-  },
-  {
-    id: '5',
-    name: 'Lisa Thompson',
-    image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop',
-    status: 'online'
-  }
-];
+// Generate fake participants using faker
+const generateFakeParticipants = (count: number): Participant[] => {
+  return Array.from({ length: count }, () => ({
+    id: faker.string.uuid(),
+    name: faker.person.fullName(),
+    image: faker.image.avatar(),
+    status: faker.helpers.arrayElement(['online', 'offline', 'no-response'] as const)
+  }));
+};
 
 const Room: React.FC<RoomProps> = ({ roomCode, handleLogout, currentUser, theme, setTheme }) => {
   const [isMuted, setIsMuted] = useState(false);
@@ -71,15 +48,17 @@ const Room: React.FC<RoomProps> = ({ roomCode, handleLogout, currentUser, theme,
   const [messages, setMessages] = useState<{ id: number; text: string; read: boolean; }[]>([]);
   const [mediaError, setMediaError] = useState<string | null>(null);
 
-  // Initialize participants with current user as host
+  // Initialize participants with current user as host and faker data
   useEffect(() => {
     if (currentUser) {
       const currentUserParticipant: Participant = {
         id: '0',
-        name: `${currentUser.name} (Hôte)`,
-        image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop',
+        name: `${currentUser.name} (Host)`,
+        image: faker.image.avatar(),
         status: 'online'
       };
+      
+      const fakeParticipants = generateFakeParticipants(5);
       setParticipants([currentUserParticipant, ...fakeParticipants]);
 
       // Simulate random status changes for fake participants
