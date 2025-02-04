@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { toast } from '@/components/ui/use-toast';
 
 export const useMediaStream = () => {
   const [videoStream, setVideoStream] = useState<MediaStream | null>(null);
@@ -26,10 +27,20 @@ export const useMediaStream = () => {
         setVideoStream(stream);
         setIsVideoOn(true);
         setError(null);
+        
+        toast({
+          title: "Camera Started",
+          description: "Your camera is now active",
+        });
       }
     } catch (error) {
       console.error('Error accessing video:', error);
       setError('Failed to access camera');
+      toast({
+        title: "Camera Error",
+        description: "Failed to access your camera",
+        variant: "destructive",
+      });
     }
   };
 
@@ -46,16 +57,6 @@ export const useMediaStream = () => {
           audio: true
         });
         
-        // Keep video stream active when starting screen share
-        if (!isVideoOn && !videoStream) {
-          const videoStream = await navigator.mediaDevices.getUserMedia({
-            video: true,
-            audio: false // Don't capture audio twice
-          });
-          setVideoStream(videoStream);
-          setIsVideoOn(true);
-        }
-        
         console.log('Screen share stream obtained:', stream);
         setScreenStream(stream);
         setIsScreenSharing(true);
@@ -65,11 +66,25 @@ export const useMediaStream = () => {
           console.log('Screen sharing stopped by user');
           setScreenStream(null);
           setIsScreenSharing(false);
+          toast({
+            title: "Screen Share Ended",
+            description: "Screen sharing has been stopped",
+          });
         };
+
+        toast({
+          title: "Screen Share Started",
+          description: "Your screen is now being shared",
+        });
       }
     } catch (error) {
       console.error('Error sharing screen:', error);
       setError('Failed to share screen');
+      toast({
+        title: "Screen Share Error",
+        description: "Failed to share your screen",
+        variant: "destructive",
+      });
     }
   };
 
