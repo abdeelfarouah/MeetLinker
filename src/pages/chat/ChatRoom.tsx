@@ -9,7 +9,7 @@ import TranscriptionDisplay from '@/components/chat/TranscriptionDisplay';
 import ParticipantsList from '@/components/chat/ParticipantsList';
 import { useMediaStream } from '@/hooks/useMediaStream';
 import { useMessages } from '@/hooks/useMessages';
-import { decryptMessage } from '@/utils/crypto';
+import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 
 const ChatRoom = () => {
@@ -22,6 +22,13 @@ const ChatRoom = () => {
     startScreenShare
   } = useMediaStream();
 
+  const {
+    transcript,
+    isRecording,
+    startRecording,
+    stopRecording
+  } = useSpeechRecognition();
+
   const currentUser = {
     id: faker.string.uuid(),
     name: faker.person.fullName(),
@@ -30,11 +37,13 @@ const ChatRoom = () => {
   };
 
   const { messages, handleSendMessage } = useMessages(currentUser.name);
-  const [isRecording, setIsRecording] = useState(false);
-  const [transcription, setTranscription] = useState<string>('');
 
   const handleToggleRecording = () => {
-    setIsRecording(!isRecording);
+    if (isRecording) {
+      stopRecording();
+    } else {
+      startRecording();
+    }
   };
 
   return (
@@ -49,6 +58,12 @@ const ChatRoom = () => {
                 isVideoOn={isVideoOn}
                 isScreenSharing={isScreenSharing}
               />
+              
+              <TranscriptionDisplay 
+                transcript={transcript}
+                isRecording={isRecording}
+              />
+
               <VideoControls
                 isVideoOn={isVideoOn}
                 isScreenSharing={isScreenSharing}
@@ -57,12 +72,6 @@ const ChatRoom = () => {
                 onToggleScreenShare={startScreenShare}
                 onToggleRecording={handleToggleRecording}
               />
-              {transcription && (
-                <TranscriptionDisplay 
-                  transcript={transcription} 
-                  isRecording={isRecording} 
-                />
-              )}
             </div>
             
             <ErrorBoundary>
@@ -76,10 +85,7 @@ const ChatRoom = () => {
                 <div className="md:col-span-3">
                   <Card className="p-4 shadow-sm bg-card">
                     <MessageList 
-                      messages={messages.map(msg => ({
-                        ...msg,
-                        content: decryptMessage(msg.content)
-                      }))}
+                      messages={messages}
                       currentUser={currentUser}
                     />
                     <MessageInput 
