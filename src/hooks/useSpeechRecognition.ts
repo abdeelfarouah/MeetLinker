@@ -15,17 +15,43 @@ export const useSpeechRecognition = () => {
     const recognitionInstance = new (window as any).webkitSpeechRecognition();
     recognitionInstance.continuous = true;
     recognitionInstance.interimResults = true;
-    recognitionInstance.lang = 'fr-FR'; // Set to French, but you can change this
+    recognitionInstance.lang = 'fr-FR';
 
     recognitionInstance.onresult = (event: any) => {
       let currentTranscript = '';
       for (let i = event.resultIndex; i < event.results.length; ++i) {
+        const result = event.results[i][0].transcript;
+        
+        // Format the transcript with proper capitalization and spacing
+        let formattedResult = result;
+        
+        // Capitalize first letter of sentences
+        formattedResult = formattedResult.replace(/(^\w|\.\s+\w)/g, letter => letter.toUpperCase());
+        
+        // Add proper spacing after punctuation
+        formattedResult = formattedResult.replace(/([.!?])\s*/g, '$1 ');
+        formattedResult = formattedResult.replace(/([,;:])\s*/g, '$1 ');
+        
+        // Remove extra spaces
+        formattedResult = formattedResult.replace(/\s+/g, ' ').trim();
+        
         if (event.results[i].isFinal) {
-          currentTranscript += event.results[i][0].transcript;
+          // Add proper ending punctuation if missing
+          if (!/[.!?]$/.test(formattedResult)) {
+            formattedResult += '.';
+          }
+          currentTranscript += formattedResult;
+          console.log('Speech recognition result:', formattedResult);
         }
       }
-      console.log('Speech recognition result:', currentTranscript); // Debug log
-      setTranscript(prev => prev + ' ' + currentTranscript);
+      
+      if (currentTranscript) {
+        setTranscript(prev => {
+          // Add proper spacing between sentences
+          const spacing = prev ? ' ' : '';
+          return prev + spacing + currentTranscript;
+        });
+      }
     };
 
     recognitionInstance.onerror = (event: any) => {
@@ -48,7 +74,7 @@ export const useSpeechRecognition = () => {
         recognitionInstance.stop();
       }
     };
-  }, []);
+  }, [isRecording]);
 
   const startRecording = useCallback(() => {
     if (recognition) {
