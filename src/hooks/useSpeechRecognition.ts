@@ -2,9 +2,29 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 import { formatFrenchText } from '../utils/frenchTextFormatting';
 
+type SupportedLanguage = 'fr-FR' | 'en-US' | 'es-ES' | 'de-DE' | 'it-IT' | 'pt-PT' | 'nl-NL' | 'pl-PL' | 'ru-RU' | 'zh-CN' | 'ja-JP' | 'ko-KR' | 'ar-SA' | 'hi-IN';
+
+const languageNames: Record<SupportedLanguage, string> = {
+  'fr-FR': 'Français',
+  'en-US': 'English',
+  'es-ES': 'Español',
+  'de-DE': 'Deutsch',
+  'it-IT': 'Italiano',
+  'pt-PT': 'Português',
+  'nl-NL': 'Nederlands',
+  'pl-PL': 'Polski',
+  'ru-RU': 'Русский',
+  'zh-CN': '中文',
+  'ja-JP': '日本語',
+  'ko-KR': '한국어',
+  'ar-SA': 'العربية',
+  'hi-IN': 'हिन्दी'
+};
+
 export const useSpeechRecognition = () => {
   const [transcript, setTranscript] = useState('');
   const [isRecording, setIsRecording] = useState(false);
+  const [currentLanguage, setCurrentLanguage] = useState<SupportedLanguage>('fr-FR');
   const recognitionRef = useRef<any>(null);
   const isCleaningUpRef = useRef(false);
 
@@ -17,12 +37,13 @@ export const useSpeechRecognition = () => {
     const recognition = new (window as any).webkitSpeechRecognition();
     recognition.continuous = true;
     recognition.interimResults = true;
-    recognition.lang = 'fr-FR';
+    recognition.lang = currentLanguage;
     recognition.maxAlternatives = 1;
 
     recognition.onstart = () => {
-      console.log('Reconnaissance vocale démarrée');
+      console.log(`Reconnaissance vocale démarrée en ${languageNames[currentLanguage]}`);
       setIsRecording(true);
+      toast.success(`Reconnaissance vocale active en ${languageNames[currentLanguage]}`);
     };
 
     recognition.onresult = (event: any) => {
@@ -40,12 +61,14 @@ export const useSpeechRecognition = () => {
 
       if (finalTranscript) {
         setTranscript(prev => {
-          const formattedTranscript = formatFrenchText(finalTranscript);
-          return prev ? `${prev} ${formattedTranscript}` : formattedTranscript;
+          const formattedText = currentLanguage === 'fr-FR' 
+            ? formatFrenchText(finalTranscript)
+            : finalTranscript;
+          return prev ? `${prev} ${formattedText}` : formattedText;
         });
       } else if (interimTranscript) {
         setTranscript(prev => {
-          const lastSentence = prev.split('.').pop() || '';
+          const lastSentence = prev.split(/[.!?。！？]/).pop() || '';
           return prev.replace(lastSentence, '') + interimTranscript;
         });
       }
@@ -72,7 +95,7 @@ export const useSpeechRecognition = () => {
     };
 
     return recognition;
-  }, [isRecording]);
+  }, [currentLanguage, isRecording]);
 
   useEffect(() => {
     if (isRecording && !recognitionRef.current) {
@@ -117,6 +140,26 @@ export const useSpeechRecognition = () => {
     }
   }, []);
 
+  const changeLanguage = useCallback((newLanguage: SupportedLanguage) => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      recognitionRef.current = null;
+    }
+    setCurrentLanguage(newLanguage);
+    if (isRecording) {
+      setTimeout(() => {
+        recognitionRef.current = initRecognition();
+        if (recognitionRef.current) {
+          try {
+            recognitionRef.current.start();
+          } catch (error) {
+            console.error('Erreur au redémarrage avec nouvelle langue:', error);
+          }
+        }
+      }, 100);
+    }
+  }, [initRecognition, isRecording]);
+
   const clearTranscript = useCallback(() => {
     setTranscript('');
   }, []);
@@ -124,8 +167,11 @@ export const useSpeechRecognition = () => {
   return {
     transcript,
     isRecording,
+    currentLanguage,
+    availableLanguages: languageNames,
     startRecording,
     stopRecording,
+    changeLanguage,
     clearTranscript
   };
 };
