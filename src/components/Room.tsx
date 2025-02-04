@@ -71,12 +71,12 @@ const Room: React.FC<RoomProps> = ({ roomCode, handleLogout, currentUser, theme,
   const [messages, setMessages] = useState<{ id: number; text: string; read: boolean; }[]>([]);
   const [mediaError, setMediaError] = useState<string | null>(null);
 
-  // Initialize participants with current user and fake participants
+  // Initialize participants with current user as host
   useEffect(() => {
     if (currentUser) {
       const currentUserParticipant: Participant = {
         id: '0',
-        name: currentUser.name,
+        name: `${currentUser.name} (Hôte)`,
         image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop',
         status: 'online'
       };
@@ -103,7 +103,7 @@ const Room: React.FC<RoomProps> = ({ roomCode, handleLogout, currentUser, theme,
 
   const initializeMediaStream = async () => {
     try {
-      // First try to get both audio and video
+      console.log('Initializing media stream...');
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: true,
         video: {
@@ -113,15 +113,15 @@ const Room: React.FC<RoomProps> = ({ roomCode, handleLogout, currentUser, theme,
         }
       });
       
+      console.log('Media stream obtained:', stream);
       setUserMediaStream(stream);
       setMediaError(null);
       return true;
     } catch (error: any) {
       console.error('Failed to access media devices:', error);
       
-      // If video fails, try audio only
       if (error.name === 'NotAllowedError') {
-        setMediaError('Please allow access to your camera and microphone to use this app.');
+        setMediaError('Veuillez autoriser l\'accès à votre caméra et microphone.');
         return false;
       }
       
@@ -129,12 +129,33 @@ const Room: React.FC<RoomProps> = ({ roomCode, handleLogout, currentUser, theme,
         const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
         setUserMediaStream(audioStream);
         setIsVideoOff(true);
-        setMediaError('Video access failed. Using audio only.');
+        setMediaError('Accès vidéo impossible. Audio uniquement.');
         return true;
       } catch (audioError) {
-        setMediaError('Could not access microphone. Please check your permissions and try again.');
+        setMediaError('Impossible d\'accéder au microphone. Vérifiez vos permissions.');
         return false;
       }
+    }
+  };
+
+  const handleScreenShare = async () => {
+    try {
+      console.log('Starting screen share');
+      if (screenShareStream) {
+        screenShareStream.getTracks().forEach(track => track.stop());
+        setScreenShareStream(null);
+      } else {
+        const stream = await navigator.mediaDevices.getDisplayMedia({
+          video: true,
+          audio: true
+        });
+        
+        console.log('Screen share stream obtained:', stream);
+        setScreenShareStream(stream);
+      }
+    } catch (error) {
+      console.error('Screen sharing error:', error);
+      setMediaError('Échec du partage d\'écran. Veuillez réessayer.');
     }
   };
 
@@ -176,29 +197,6 @@ const Room: React.FC<RoomProps> = ({ roomCode, handleLogout, currentUser, theme,
         });
         setIsVideoOff(!isVideoOff);
       }
-    }
-  };
-
-  const handleScreenShare = async () => {
-    try {
-      if (screenShareStream) {
-        screenShareStream.getTracks().forEach(track => track.stop());
-        setScreenShareStream(null);
-      } else {
-        const stream = await navigator.mediaDevices.getDisplayMedia({
-          video: true,
-          audio: false
-        });
-        
-        stream.getVideoTracks()[0].onended = () => {
-          setScreenShareStream(null);
-        };
-        
-        setScreenShareStream(stream);
-      }
-    } catch (error) {
-      console.error('Screen sharing error:', error);
-      setMediaError('Failed to start screen sharing. Please try again.');
     }
   };
 

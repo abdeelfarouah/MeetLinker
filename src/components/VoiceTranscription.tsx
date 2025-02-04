@@ -13,11 +13,14 @@ const VoiceTranscription: React.FC<VoiceTranscriptionProps> = ({ stream, isMuted
   useEffect(() => {
     if (!stream || isMuted || !('webkitSpeechRecognition' in window)) return;
 
+    console.log('Initializing speech recognition...');
     const recognition = new window.webkitSpeechRecognition();
     recognition.continuous = true;
     recognition.interimResults = true;
+    recognition.lang = 'fr-FR'; // Définir la langue en français
 
     recognition.addEventListener('start', () => {
+      console.log('Speech recognition started');
       setIsTranscribing(true);
     });
 
@@ -28,8 +31,10 @@ const VoiceTranscription: React.FC<VoiceTranscriptionProps> = ({ stream, isMuted
       for (let i = event.resultIndex; i < event.results.length; ++i) {
         if (event.results[i].isFinal) {
           finalTranscript += event.results[i][0].transcript;
+          console.log('Final transcript:', finalTranscript);
         } else {
           interimTranscript += event.results[i][0].transcript;
+          console.log('Interim transcript:', interimTranscript);
         }
       }
 
@@ -42,6 +47,7 @@ const VoiceTranscription: React.FC<VoiceTranscriptionProps> = ({ stream, isMuted
     });
 
     recognition.addEventListener('end', () => {
+      console.log('Speech recognition ended');
       setIsTranscribing(false);
       if (!isMuted) {
         recognition.start();
@@ -49,11 +55,19 @@ const VoiceTranscription: React.FC<VoiceTranscriptionProps> = ({ stream, isMuted
     });
 
     if (!isMuted) {
-      recognition.start();
+      try {
+        recognition.start();
+      } catch (error) {
+        console.error('Error starting speech recognition:', error);
+      }
     }
 
     return () => {
-      recognition.stop();
+      try {
+        recognition.stop();
+      } catch (error) {
+        console.error('Error stopping speech recognition:', error);
+      }
     };
   }, [stream, isMuted]);
 
@@ -63,14 +77,14 @@ const VoiceTranscription: React.FC<VoiceTranscriptionProps> = ({ stream, isMuted
     <div className="mt-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
       <div className="flex items-center gap-2 mb-2">
         <Mic className={`w-5 h-5 ${isTranscribing ? 'text-green-500' : 'text-gray-400'}`} />
-        <h3 className="font-medium text-gray-700 dark:text-gray-300">Live Transcription</h3>
+        <h3 className="font-medium text-gray-700 dark:text-gray-300">Transcription en direct</h3>
       </div>
       <div className="min-h-[60px] p-3 bg-gray-50 dark:bg-gray-700/50 rounded border dark:border-gray-600">
         {transcript ? (
           <p className="text-gray-700 dark:text-gray-300">{transcript}</p>
         ) : (
           <p className="text-gray-400 dark:text-gray-500 italic">
-            {isTranscribing ? 'Listening...' : 'No speech detected'}
+            {isTranscribing ? 'Écoute en cours...' : 'Aucune parole détectée'}
           </p>
         )}
       </div>
