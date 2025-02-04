@@ -39,7 +39,27 @@ export const setupSpeechRecognition = (
     }
 
     if (finalTranscript || interimTranscript) {
-      setTranscript(prev => `${prev} ${finalTranscript || interimTranscript}`.trim());
+      setTranscript(prev => {
+        const newText = finalTranscript || interimTranscript;
+        return prev ? `${prev} ${newText}` : newText;
+      });
+    }
+  };
+
+  recognition.onerror = (event: any) => {
+    console.error('Speech recognition error:', event.error);
+    setIsTranscribing(false);
+  };
+
+  recognition.onend = () => {
+    console.log('Speech recognition ended');
+    // Automatically restart recognition if it ends
+    try {
+      recognition.start();
+      console.log('Restarting speech recognition');
+    } catch (error) {
+      console.error('Error restarting speech recognition:', error);
+      setIsTranscribing(false);
     }
   };
 

@@ -19,7 +19,10 @@ export const useMediaStream = () => {
       } else {
         console.log('Starting video stream');
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
+          video: {
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          },
           audio: true
         });
         console.log('Video stream obtained:', stream);
@@ -47,9 +50,27 @@ export const useMediaStream = () => {
           video: true,
           audio: true
         });
+        
+        // Keep video stream active when starting screen share
+        if (!isVideoOn && !videoStream) {
+          const videoStream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: false // Don't capture audio twice
+          });
+          setVideoStream(videoStream);
+          setIsVideoOn(true);
+        }
+        
         console.log('Screen share stream obtained:', stream);
         setScreenStream(stream);
         setIsScreenSharing(true);
+
+        // Handle screen share stop from browser UI
+        stream.getVideoTracks()[0].onended = () => {
+          console.log('Screen sharing stopped by user');
+          setScreenStream(null);
+          setIsScreenSharing(false);
+        };
       }
     } catch (error) {
       console.error('Error sharing screen:', error);
