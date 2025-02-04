@@ -1,11 +1,15 @@
+import React from 'react';
+
 type RecognitionInstance = any; // Using any for webkitSpeechRecognition type
 
 export const setupSpeechRecognition = (
   setTranscript: React.Dispatch<React.SetStateAction<string>>,
-  onStatusChange: (isTranscribing: boolean) => void
+  setIsTranscribing: React.Dispatch<React.SetStateAction<boolean>>
 ) => {
+  console.log('Setting up speech recognition...');
+  
   if (!('webkitSpeechRecognition' in window)) {
-    console.log('Speech recognition not available');
+    console.error('Speech recognition not supported in this browser');
     return null;
   }
 
@@ -16,20 +20,20 @@ export const setupSpeechRecognition = (
 
   recognition.onstart = () => {
     console.log('Speech recognition started');
-    onStatusChange(true);
+    setIsTranscribing(true);
   };
 
   recognition.onresult = (event: any) => {
-    let finalTranscript = '';
     let interimTranscript = '';
+    let finalTranscript = '';
 
     for (let i = event.resultIndex; i < event.results.length; ++i) {
-      const result = event.results[i][0].transcript;
+      const transcript = event.results[i][0].transcript;
       if (event.results[i].isFinal) {
-        finalTranscript += result;
+        finalTranscript += transcript;
         console.log('Final transcript:', finalTranscript);
       } else {
-        interimTranscript += result;
+        interimTranscript += transcript;
         console.log('Interim transcript:', interimTranscript);
       }
     }
@@ -42,29 +46,19 @@ export const setupSpeechRecognition = (
   return recognition;
 };
 
-export const handleRecognitionError = (recognition: RecognitionInstance) => {
-  return (event: any) => {
-    console.error('Speech recognition error:', event.error);
-    restartRecognition(recognition);
-  };
+export const handleRecognitionError = (recognition: RecognitionInstance) => (event: any) => {
+  console.error('Speech recognition error:', event.error);
+  if (recognition) {
+    recognition.stop();
+  }
 };
 
-export const handleRecognitionEnd = (recognition: RecognitionInstance) => {
-  return () => {
-    console.log('Speech recognition ended');
-    restartRecognition(recognition);
-  };
-};
-
-const restartRecognition = (recognition: RecognitionInstance) => {
-  if (!recognition) return;
-  
-  setTimeout(() => {
-    try {
-      recognition.start();
-      console.log('Speech recognition restarted');
-    } catch (error) {
-      console.error('Error restarting speech recognition:', error);
-    }
-  }, 100);
+export const handleRecognitionEnd = (recognition: RecognitionInstance) => () => {
+  console.log('Speech recognition ended');
+  try {
+    recognition.start();
+    console.log('Restarting speech recognition');
+  } catch (error) {
+    console.error('Error restarting speech recognition:', error);
+  }
 };
