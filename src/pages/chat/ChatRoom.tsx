@@ -12,6 +12,12 @@ import { useMessages } from '@/hooks/useMessages';
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 
+// Generate a consistent avatar URL for a given seed
+const generateConsistentAvatar = (seed: string) => {
+  faker.seed(seed.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0));
+  return faker.image.avatar();
+};
+
 const ChatRoom = () => {
   const {
     videoStream,
@@ -30,13 +36,14 @@ const ChatRoom = () => {
     clearTranscript
   } = useSpeechRecognition();
 
-  // Generate fake user data using faker
-  const avatarUrl = faker.image.avatar();
+  // Generate fake user data using faker with consistent avatar
+  const userId = faker.string.uuid();
+  const avatarUrl = generateConsistentAvatar(userId);
   const currentUser = {
-    id: faker.string.uuid(),
+    id: userId,
     name: faker.person.fullName(),
-    avatar: avatarUrl,  // for User type
-    image: avatarUrl,   // for Participant type
+    avatar: avatarUrl,
+    image: avatarUrl,
     status: 'online' as const
   };
 
