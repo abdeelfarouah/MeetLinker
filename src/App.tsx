@@ -21,10 +21,22 @@ function App() {
         <TooltipProvider>
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<AuthenticatedRoute><Navigate to="/chat" replace /></AuthenticatedRoute>} />
+              {/* Default route redirects to landing for new users, chat for authenticated users */}
+              <Route 
+                path="/" 
+                element={
+                  <AuthenticatedRoute>
+                    <Navigate to="/landing" replace />
+                  </AuthenticatedRoute>
+                } 
+              />
+              
+              {/* Public routes */}
               <Route path="/landing" element={<LandingPage />} />
-              <Route path="/auth/login" element={<Login />} />
-              <Route path="/auth/register" element={<Register />} />
+              <Route path="/auth/login" element={<PublicRoute><Login /></PublicRoute>} />
+              <Route path="/auth/register" element={<PublicRoute><Register /></PublicRoute>} />
+              
+              {/* Protected routes */}
               <Route 
                 path="/chat" 
                 element={
@@ -61,20 +73,37 @@ function App() {
   );
 }
 
+// Route guard for authenticated users
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   const { isAuthenticated } = useAuth();
+  console.log("Protected route check - isAuthenticated:", isAuthenticated);
+  
   if (!isAuthenticated) {
-    return <Navigate to="/auth/login" replace />;
+    return <Navigate to="/landing" replace />;
   }
   return children;
 };
 
+// Route guard for public routes (login/register)
+const PublicRoute = ({ children }: { children: JSX.Element }) => {
+  const { isAuthenticated } = useAuth();
+  console.log("Public route check - isAuthenticated:", isAuthenticated);
+  
+  if (isAuthenticated) {
+    return <Navigate to="/chat" replace />;
+  }
+  return children;
+};
+
+// Route guard for authenticated users trying to access root
 const AuthenticatedRoute = ({ children }: { children: JSX.Element }) => {
   const { isAuthenticated } = useAuth();
+  console.log("Authenticated route check - isAuthenticated:", isAuthenticated);
+  
   if (isAuthenticated) {
-    return children;
+    return <Navigate to="/chat" replace />;
   }
-  return <Navigate to="/landing" replace />;
+  return children;
 };
 
 export default App;
