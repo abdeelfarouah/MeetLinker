@@ -13,10 +13,10 @@ type Participant = {
   status: 'online' | 'offline' | 'no-response';
 };
 
-// Generate a consistent avatar URL for a given seed
-const generateConsistentAvatar = (seed: string) => {
-  faker.seed(seed.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0));
-  return faker.image.avatar();
+// Generate a unique AI-generated face URL
+const generateAIFace = () => {
+  // Add a cache-busting parameter to get a new image each time
+  return `https://thispersondoesnotexist.com?${Date.now()}`;
 };
 
 export const useParticipants = (currentUser: User | null) => {
@@ -29,7 +29,7 @@ export const useParticipants = (currentUser: User | null) => {
       return {
         id,
         name: faker.person.fullName(),
-        image: generateConsistentAvatar(id),
+        image: generateAIFace(),
         status: faker.helpers.arrayElement(['online', 'offline', 'no-response'] as const)
       };
     });
@@ -40,7 +40,7 @@ export const useParticipants = (currentUser: User | null) => {
       fakeParticipants.unshift({
         id: currentUserId,
         name: currentUser.name,
-        image: generateConsistentAvatar(currentUserId),
+        image: generateAIFace(),
         status: 'online'
       });
     }
