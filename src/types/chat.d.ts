@@ -4,3 +4,10 @@ export interface Message {
   sender: string;
   timestamp: Date;
 }
+
+export interface Participant {
+  id: string;
+  name: string;
+  image: string;
+  status: 'online' | 'offline' | 'away';
+}

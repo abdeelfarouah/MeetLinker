@@ -10,34 +10,31 @@ interface MediaContainerProps {
   onEndScreenShare: () => void;
 }
 
-const MediaContainer = ({
+const MediaContainer: React.FC<MediaContainerProps> = ({
   screenShareStream,
   userMediaStream,
   isMuted,
   isVideoOff,
-  onEndScreenShare,
-}: MediaContainerProps) => {
+  onEndScreenShare
+}) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {screenShareStream && (
-        <ScreenShare
-          screenShareStream={screenShareStream}
-          onEndScreenShare={onEndScreenShare}
+    <div className="space-y-4">
+      {screenShareStream ? (
+        <ScreenShare 
+          stream={screenShareStream} 
+          onEndShare={onEndScreenShare} 
+        />
+      ) : (
+        <VideoStream 
+          stream={userMediaStream}
+          isMuted={isMuted}
+          isVideoOff={isVideoOff}
         />
       )}
-      {userMediaStream && (
-        <>
-          <VideoStream
-            stream={userMediaStream}
-            isMuted={isMuted}
-            isVideoOff={isVideoOff}
-          />
-          <VoiceTranscription
-            stream={userMediaStream}
-            isMuted={isMuted}
-          />
-        </>
-      )}
+      <VoiceTranscription 
+        stream={userMediaStream} 
+        isMuted={isMuted} 
+      />
     </div>
   );
 };
