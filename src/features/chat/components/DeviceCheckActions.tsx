@@ -1,33 +1,37 @@
-import React from 'react';
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
+import { RefreshCw, Video } from "lucide-react";
 
-type DeviceCheckActionsProps = {
+interface DeviceCheckActionsProps {
   onRetry: () => void;
   onJoin: () => void;
   isLoading: boolean;
   isDevicesWorking: boolean;
-};
+}
 
-const DeviceCheckActions: React.FC<DeviceCheckActionsProps> = ({
+const DeviceCheckActions = ({
   onRetry,
   onJoin,
   isLoading,
-  isDevicesWorking,
-}) => {
+  isDevicesWorking
+}: DeviceCheckActionsProps) => {
   return (
-    <div className="flex justify-center gap-4">
-      <Button 
+    <div className="flex flex-col sm:flex-row gap-4 justify-end">
+      <Button
+        variant="outline"
         onClick={onRetry}
         disabled={isLoading}
-        variant="outline"
+        className="flex items-center gap-2"
       >
+        <RefreshCw className="w-4 h-4" />
         Réessayer
       </Button>
-      <Button 
+      
+      <Button
         onClick={onJoin}
         disabled={!isDevicesWorking || isLoading}
-        className="bg-green-600 hover:bg-green-700"
+        className="flex items-center gap-2"
       >
+        <Video className="w-4 h-4" />
         Rejoindre la réunion
       </Button>
     </div>

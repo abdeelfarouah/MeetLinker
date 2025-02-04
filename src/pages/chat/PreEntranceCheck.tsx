@@ -19,6 +19,10 @@ const PreEntranceCheck = () => {
   const { roomId } = useParams();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    startDeviceCheck();
+  }, [startDeviceCheck]);
+
   const handleJoinMeeting = () => {
     if (isVideoWorking && isAudioWorking) {
       navigate(`/chat/${roomId}`);
@@ -30,21 +34,6 @@ const PreEntranceCheck = () => {
       });
     }
   };
-
-  useEffect(() => {
-    startDeviceCheck();
-    return () => {
-      if (videoStream) {
-        console.log("Cleaning up media streams");
-        videoStream.getTracks().forEach(track => {
-          track.stop();
-          console.log(`Track ${track.kind} stopped`);
-        });
-      }
-    };
-  }, []);
-
-  const isDevicesWorking = isVideoWorking && isAudioWorking;
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-indigo-600 via-purple-500 to-indigo-600">
@@ -69,7 +58,7 @@ const PreEntranceCheck = () => {
               onRetry={startDeviceCheck}
               onJoin={handleJoinMeeting}
               isLoading={isLoading}
-              isDevicesWorking={isDevicesWorking}
+              isDevicesWorking={isVideoWorking && isAudioWorking}
             />
           </div>
         </Card>
