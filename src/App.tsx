@@ -10,7 +10,7 @@ import Register from "./pages/auth/Register";
 import ChatRoom from "./pages/chat/ChatRoom";
 import PreEntranceCheck from "./pages/chat/PreEntranceCheck";
 import LandingPage from "./pages/LandingPage";
-import ChatUI from '@/components/chat/ChatUI';
+import ChatUI from '@/features/chat/components/ChatUI';
 
 const queryClient = new QueryClient();
 
