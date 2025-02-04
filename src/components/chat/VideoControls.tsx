@@ -1,37 +1,74 @@
 import { Button } from "@/components/ui/button";
-import { Video, Monitor, VideoOff, MonitorOff } from "lucide-react";
+import { Mic, MicOff, Video, VideoOff, MonitorUp, MonitorOff } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface VideoControlsProps {
   isVideoOn: boolean;
   isScreenSharing: boolean;
+  isRecording: boolean;
   onToggleVideo: () => void;
   onToggleScreenShare: () => void;
+  onToggleRecording: () => void;
 }
 
 const VideoControls = ({
   isVideoOn,
   isScreenSharing,
+  isRecording,
   onToggleVideo,
   onToggleScreenShare,
+  onToggleRecording,
 }: VideoControlsProps) => {
   return (
-    <div className="flex gap-2 mt-4">
-      <Button 
-        onClick={onToggleVideo}
-        variant={isVideoOn ? "destructive" : "default"}
-        className="flex items-center gap-2"
-      >
-        {isVideoOn ? <VideoOff className="h-4 w-4" /> : <Video className="h-4 w-4" />}
-        {isVideoOn ? "Stop Camera" : "Start Camera"}
-      </Button>
-      <Button 
-        onClick={onToggleScreenShare}
-        variant={isScreenSharing ? "destructive" : "default"}
-        className="flex items-center gap-2"
-      >
-        {isScreenSharing ? <MonitorOff className="h-4 w-4" /> : <Monitor className="h-4 w-4" />}
-        {isScreenSharing ? "Stop Sharing" : "Share Screen"}
-      </Button>
+    <div className="flex items-center justify-center gap-4 p-4">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant={isVideoOn ? "default" : "destructive"}
+            size="icon"
+            onClick={onToggleVideo}
+          >
+            {isVideoOn ? <Video className="h-4 w-4" /> : <VideoOff className="h-4 w-4" />}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          {isVideoOn ? 'Turn off camera' : 'Turn on camera'}
+        </TooltipContent>
+      </Tooltip>
+
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant={isScreenSharing ? "default" : "outline"}
+            size="icon"
+            onClick={onToggleScreenShare}
+          >
+            {isScreenSharing ? (
+              <MonitorOff className="h-4 w-4" />
+            ) : (
+              <MonitorUp className="h-4 w-4" />
+            )}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          {isScreenSharing ? 'Stop sharing screen' : 'Share screen'}
+        </TooltipContent>
+      </Tooltip>
+
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant={isRecording ? "default" : "outline"}
+            size="icon"
+            onClick={onToggleRecording}
+          >
+            {isRecording ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          {isRecording ? 'Stop recording' : 'Start recording'}
+        </TooltipContent>
+      </Tooltip>
     </div>
   );
 };

@@ -1,28 +1,33 @@
+import { useEffect, useRef, useState } from 'react';
 import { Card } from "@/components/ui/card";
 import { motion } from "framer-motion";
-import { useEffect, useRef } from "react";
+import { Mic } from "lucide-react";
 
 interface TranscriptionDisplayProps {
   transcript: string;
+  isRecording?: boolean;
 }
 
-const TranscriptionDisplay = ({ transcript }: TranscriptionDisplayProps) => {
+const TranscriptionDisplay = ({ transcript, isRecording = false }: TranscriptionDisplayProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [autoScroll, setAutoScroll] = useState(true);
 
   useEffect(() => {
-    // Auto-scroll to bottom when new text appears
-    if (scrollRef.current) {
+    if (scrollRef.current && autoScroll) {
       const scrollElement = scrollRef.current;
-      const isScrolledToBottom = 
-        scrollElement.scrollHeight - scrollElement.scrollTop <= scrollElement.clientHeight + 100;
-      
-      if (isScrolledToBottom) {
-        scrollElement.scrollTop = scrollElement.scrollHeight;
-      }
+      scrollElement.scrollTop = scrollElement.scrollHeight;
     }
-  }, [transcript]);
+  }, [transcript, autoScroll]);
 
-  if (!transcript) return null;
+  const handleScroll = () => {
+    if (scrollRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
+      const isNearBottom = scrollHeight - scrollTop - clientHeight < 50;
+      setAutoScroll(isNearBottom);
+    }
+  };
+
+  if (!transcript && !isRecording) return null;
 
   return (
     <motion.div
@@ -32,17 +37,25 @@ const TranscriptionDisplay = ({ transcript }: TranscriptionDisplayProps) => {
       className="mt-4"
     >
       <Card 
-        ref={scrollRef} 
-        className="p-4 max-h-40 overflow-y-auto bg-secondary border-2 border-primary/20 relative"
+        ref={scrollRef}
+        onScroll={handleScroll}
+        className="p-4 max-h-40 overflow-y-auto bg-secondary/50 border-2 border-primary/20 relative"
       >
         <div className="flex items-center justify-between mb-2">
-          <h3 className="font-semibold text-primary">Live Transcription</h3>
-          <div className="flex items-center gap-2">
-            <span className="inline-block w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-            <span className="text-xs text-muted-foreground">Recording</span>
-          </div>
+          <h3 className="font-semibold text-primary flex items-center gap-2">
+            <Mic className={`w-4 h-4 ${isRecording ? 'text-green-500' : 'text-gray-400'}`} />
+            Live Transcription
+          </h3>
+          {isRecording && (
+            <div className="flex items-center gap-2">
+              <span className="inline-block w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+              <span className="text-xs text-muted-foreground">Recording</span>
+            </div>
+          )}
         </div>
-        <p className="text-sm whitespace-pre-line leading-relaxed">{transcript}</p>
+        <p className="text-sm whitespace-pre-line leading-relaxed">
+          {transcript || 'Waiting for speech...'}
+        </p>
       </Card>
     </motion.div>
   );
