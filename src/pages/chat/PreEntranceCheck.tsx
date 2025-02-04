@@ -2,9 +2,9 @@ import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { Card } from "@/components/ui/card";
-import DeviceStatus from "@/features/chat/components/DeviceStatus";
-import VideoPreview from "@/features/chat/components/VideoPreview";
-import DeviceCheckActions from "@/features/chat/components/DeviceCheckActions";
+import DeviceStatus from "@/components/DeviceStatus";
+import VideoPreview from "@/components/VideoPreview";
+import DeviceCheckActions from "@/components/DeviceCheckActions";
 import { useDeviceCheck } from "@/features/chat/hooks/useDeviceCheck";
 
 const PreEntranceCheck = () => {
