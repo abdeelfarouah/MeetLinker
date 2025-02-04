@@ -1,7 +1,8 @@
 /**
- * Encrypts a plain text message using a simple base64 encoding (for demo purposes).
- * In a production environment, use proper encryption.
+ * Simple encryption/decryption utilities for demo purposes.
+ * In production, use proper encryption methods.
  */
+
 export function encryptMessage(message: string): string {
   try {
     return btoa(message);
@@ -11,15 +12,11 @@ export function encryptMessage(message: string): string {
   }
 }
 
-/**
- * Decrypts an encrypted message using base64 decoding (for demo purposes).
- * In a production environment, use proper decryption.
- */
-export function decryptMessage(encryptedMessage: string): string {
+export function decryptMessage(message: string): string {
   try {
-    return atob(encryptedMessage);
+    return atob(message);
   } catch (error) {
     console.error('Decryption error:', error);
-    return encryptedMessage;
+    return message;
   }
 }

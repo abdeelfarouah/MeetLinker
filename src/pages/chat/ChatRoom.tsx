@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { faker } from '@faker-js/faker/locale/fr';
 import { Card } from "@/components/ui/card";
 import VideoStreamsDisplay from '@/components/chat/VideoStreamsDisplay';
 import MessageList from '@/components/chat/MessageList';
@@ -6,24 +6,21 @@ import MessageInput from '@/components/chat/MessageInput';
 import VideoControls from '@/components/chat/VideoControls';
 import TranscriptionDisplay from '@/components/chat/TranscriptionDisplay';
 import ParticipantsList from '@/components/chat/ParticipantsList';
-import { faker } from '@faker-js/faker/locale/fr';
-import { toast } from 'sonner';
-import { encryptMessage, decryptMessage } from '@/utils/crypto';
+import { useMediaStream } from '@/hooks/useMediaStream';
+import { useMessages } from '@/hooks/useMessages';
+import { decryptMessage } from '@/utils/crypto';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
-import type { Message } from '@/types/chat';
 
 const ChatRoom = () => {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [isVideoOn, setIsVideoOn] = useState(false);
-  const [isScreenSharing, setIsScreenSharing] = useState(false);
-  const [videoStream, setVideoStream] = useState<MediaStream | null>(null);
-  const [screenStream, setScreenStream] = useState<MediaStream | null>(null);
-  const [transcription, setTranscription] = useState<string>('');
-  const [isRecording, setIsRecording] = useState(false);
-  
-  console.log('Rendering ChatRoom with streams:', { videoStream, screenStream });
-  
-  // Generate one fake participant
+  const {
+    videoStream,
+    screenStream,
+    isVideoOn,
+    isScreenSharing,
+    startVideo,
+    startScreenShare
+  } = useMediaStream();
+
   const currentUser = {
     id: faker.string.uuid(),
     name: faker.person.fullName(),
@@ -31,88 +28,13 @@ const ChatRoom = () => {
     status: 'online' as const
   };
 
-  const handleSendMessage = (content: string) => {
-    try {
-      const encryptedContent = encryptMessage(content);
-      const newMessage: Message = {
-        id: Date.now().toString(),
-        content: encryptedContent,
-        sender: currentUser.name,
-        timestamp: new Date()
-      };
-      
-      setMessages(prev => [...prev, newMessage]);
-      console.log('Message sent:', { content, encrypted: encryptedContent });
-    } catch (error) {
-      console.error('Error sending message:', error);
-      toast.error('Error sending message');
-    }
-  };
-
-  const startVideo = async () => {
-    try {
-      if (isVideoOn) {
-        console.log('Stopping video stream');
-        if (videoStream) {
-          videoStream.getTracks().forEach(track => track.stop());
-          setVideoStream(null);
-        }
-        setIsVideoOn(false);
-      } else {
-        console.log('Starting video stream');
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: true
-        });
-        console.log('Video stream obtained:', stream);
-        setVideoStream(stream);
-        setIsVideoOn(true);
-      }
-    } catch (error) {
-      console.error('Error accessing camera:', error);
-      toast.error('Error accessing camera');
-    }
-  };
-
-  const startScreenShare = async () => {
-    try {
-      if (isScreenSharing) {
-        console.log('Stopping screen share');
-        if (screenStream) {
-          screenStream.getTracks().forEach(track => track.stop());
-          setScreenStream(null);
-        }
-        setIsScreenSharing(false);
-      } else {
-        console.log('Starting screen share');
-        const stream = await navigator.mediaDevices.getDisplayMedia({
-          video: true,
-          audio: true
-        });
-        console.log('Screen share stream obtained:', stream);
-        setScreenStream(stream);
-        setIsScreenSharing(true);
-      }
-    } catch (error) {
-      console.error('Error sharing screen:', error);
-      toast.error('Error sharing screen');
-    }
-  };
+  const { messages, handleSendMessage } = useMessages(currentUser.name);
+  const [isRecording, setIsRecording] = useState(false);
+  const [transcription, setTranscription] = useState<string>('');
 
   const handleToggleRecording = () => {
     setIsRecording(!isRecording);
   };
-
-  useEffect(() => {
-    return () => {
-      if (videoStream) {
-        videoStream.getTracks().forEach(track => track.stop());
-      }
-      if (screenStream) {
-        screenStream.getTracks().forEach(track => track.stop());
-      }
-    };
-  }, [videoStream, screenStream]);
 
   return (
     <div className="min-h-screen bg-background p-4 space-y-4">
