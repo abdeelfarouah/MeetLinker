@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
-import VideoStream from "@/components/chat/VideoStream";
+import VideoStream from "@/components/VideoStream";
 import { Card } from "@/components/ui/card";
 import { AlertCircle, CheckCircle2, Camera, Mic } from "lucide-react";
 

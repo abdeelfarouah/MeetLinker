@@ -1,12 +1,12 @@
-type SpeechRecognitionCallback = (transcript: string) => void;
+import { toast } from 'sonner';
 
 export const initSpeechRecognition = (
   setTranscript: React.Dispatch<React.SetStateAction<string>>,
-  setIsTranscribing: React.Dispatch<React.SetStateAction<boolean>>,
-  onTranscriptUpdate?: SpeechRecognitionCallback
+  setIsTranscribing: React.Dispatch<React.SetStateAction<boolean>>
 ) => {
   if (!('webkitSpeechRecognition' in window)) {
     console.error('Speech recognition not supported');
+    toast.error('Speech recognition is not supported in this browser');
     return null;
   }
 
@@ -21,46 +21,30 @@ export const initSpeechRecognition = (
   };
 
   recognition.onresult = (event: any) => {
-    let interimTranscript = '';
     let finalTranscript = '';
-
-    for (let i = event.resultIndex; i < event.results.length; i++) {
-      const transcript = event.results[i][0].transcript;
+    for (let i = event.resultIndex; i < event.results.length; ++i) {
       if (event.results[i].isFinal) {
-        finalTranscript += transcript;
-      } else {
-        interimTranscript += transcript;
+        finalTranscript += event.results[i][0].transcript;
       }
     }
-
-    if (finalTranscript || interimTranscript) {
-      setTranscript(prev => {
-        const newText = finalTranscript || interimTranscript;
-        return prev ? `${prev} ${newText}` : newText;
-      });
-      
-      if (onTranscriptUpdate) {
-        onTranscriptUpdate(finalTranscript || interimTranscript);
-      }
-    }
-  };
-
-  recognition.onerror = (event: any) => {
-    console.error('Speech recognition error:', event.error);
-    setIsTranscribing(false);
-  };
-
-  recognition.onend = () => {
-    console.log('Speech recognition ended');
-    // Automatically restart recognition if it ends
-    try {
-      recognition.start();
-      console.log('Restarting speech recognition');
-    } catch (error) {
-      console.error('Error restarting speech recognition:', error);
-      setIsTranscribing(false);
+    if (finalTranscript) {
+      setTranscript(prev => `${prev} ${finalTranscript}`.trim());
     }
   };
 
   return recognition;
+};
+
+export const handleRecognitionError = (recognition: any) => (event: any) => {
+  console.error('Speech recognition error:', event.error);
+  recognition.stop();
+};
+
+export const handleRecognitionEnd = (recognition: any) => () => {
+  console.log('Speech recognition ended');
+  try {
+    recognition.start();
+  } catch (error) {
+    console.error('Error restarting speech recognition:', error);
+  }
 };

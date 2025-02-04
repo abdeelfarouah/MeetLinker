@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import TranscriptionStatus from './transcription/TranscriptionStatus';
 import TranscriptionDisplay from './transcription/TranscriptionDisplay';
-import { setupSpeechRecognition, handleRecognitionError, handleRecognitionEnd } from '../utils/speechRecognition';
+import { initSpeechRecognition, handleRecognitionError, handleRecognitionEnd } from '../utils/speechRecognition';
 
 type VoiceTranscriptionProps = {
   stream: MediaStream | null;
@@ -13,7 +13,7 @@ const VoiceTranscription: React.FC<VoiceTranscriptionProps> = ({ stream }) => {
   const [isTranscribing, setIsTranscribing] = useState(false);
 
   useEffect(() => {
-    const recognition = setupSpeechRecognition(setTranscript, setIsTranscribing);
+    const recognition = initSpeechRecognition(setTranscript, setIsTranscribing);
     
     if (!recognition) return;
 

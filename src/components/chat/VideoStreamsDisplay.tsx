@@ -1,4 +1,4 @@
-import VideoStream from '@/features/video/components/VideoStream';
+import VideoStream from '@/components/VideoStream';
 
 interface VideoStreamsDisplayProps {
   videoStream: MediaStream | null;
