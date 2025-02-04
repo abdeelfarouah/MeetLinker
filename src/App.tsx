@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/auth/Login";
@@ -13,6 +13,16 @@ import LandingPage from "./pages/LandingPage";
 import ChatUI from '@/components/chat/ChatUI';
 
 const queryClient = new QueryClient();
+
+// Wrapper component to conditionally render ChatUI
+const ChatUIWrapper = () => {
+  const location = useLocation();
+  const isChatRoute = location.pathname.includes('/chat') || location.pathname.includes('/pre-entrance');
+  
+  console.log('Current route:', location.pathname, 'Should show ChatUI:', isChatRoute);
+  
+  return isChatRoute ? <ChatUI /> : null;
+};
 
 function App() {
   return (
@@ -63,11 +73,11 @@ function App() {
               />
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <ChatUIWrapper />
+            <Toaster />
+            <Sonner />
           </BrowserRouter>
-          <Toaster />
-          <Sonner />
         </TooltipProvider>
-        <ChatUI />
       </AuthProvider>
     </QueryClientProvider>
   );
