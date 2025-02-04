@@ -2,9 +2,9 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 
-// https://vitejs.dev/config/
 export default {
   server: {
+    port: 8080,
     proxy: {
       '/src/main.tsx': {
         target: 'https://abdeelfarouah.github.io',
@@ -21,6 +21,11 @@ export default {
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-    },
+    }
   },
+  build: {
+    rollupOptions: {
+      external: ['emoji-mart'],
+    }
+  }
 };
