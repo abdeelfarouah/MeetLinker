@@ -8,10 +8,17 @@ export const useMediaStream = () => {
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Cleanup function for streams
+  const cleanupStream = (stream: MediaStream | null) => {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+    }
+  };
+
   const startVideo = async () => {
     try {
       if (isVideoOn && videoStream) {
-        videoStream.getTracks().forEach(track => track.stop());
+        cleanupStream(videoStream);
         setVideoStream(null);
         setIsVideoOn(false);
       } else {
@@ -47,7 +54,7 @@ export const useMediaStream = () => {
   const startScreenShare = async () => {
     try {
       if (isScreenSharing && screenStream) {
-        screenStream.getTracks().forEach(track => track.stop());
+        cleanupStream(screenStream);
         setScreenStream(null);
         setIsScreenSharing(false);
       } else {
@@ -64,6 +71,7 @@ export const useMediaStream = () => {
         // Handle screen share stop from browser UI
         stream.getVideoTracks()[0].onended = () => {
           console.log('Screen sharing stopped by user');
+          cleanupStream(stream);
           setScreenStream(null);
           setIsScreenSharing(false);
           toast({
@@ -88,14 +96,11 @@ export const useMediaStream = () => {
     }
   };
 
+  // Cleanup on component unmount
   useEffect(() => {
     return () => {
-      if (videoStream) {
-        videoStream.getTracks().forEach(track => track.stop());
-      }
-      if (screenStream) {
-        screenStream.getTracks().forEach(track => track.stop());
-      }
+      cleanupStream(videoStream);
+      cleanupStream(screenStream);
     };
   }, [videoStream, screenStream]);
 
