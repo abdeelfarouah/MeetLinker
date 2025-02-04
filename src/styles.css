@@ -50,12 +50,16 @@
 }
 
 @layer base {
+  * {
+    @apply border-border;
+  }
+  
   html, body {
     @apply h-full overflow-hidden;
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground bg-white dark:bg-gray-900;
   }
 
   #root {
