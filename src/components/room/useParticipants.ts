@@ -13,11 +13,9 @@ type Participant = {
   status: 'online' | 'offline' | 'no-response';
 };
 
-// Generate a unique AI-generated face URL
-const generateAIFace = () => {
-  // Using DiceBear API for consistent, unique avatars
-  const style = 'avataaars'; // or 'human', 'bottts', 'gridy', etc.
-  const seed = faker.string.uuid();
+// Generate a consistent avatar URL for a given seed
+const generateConsistentAvatar = (seed: string) => {
+  const style = 'avataaars';
   return `https://api.dicebear.com/7.x/${style}/svg?seed=${seed}`;
 };
 
@@ -31,7 +29,7 @@ export const useParticipants = (currentUser: User | null) => {
       return {
         id,
         name: faker.person.fullName(),
-        image: generateAIFace(),
+        image: generateConsistentAvatar(id),
         status: faker.helpers.arrayElement(['online', 'offline', 'no-response'] as const)
       };
     });
@@ -42,7 +40,7 @@ export const useParticipants = (currentUser: User | null) => {
       fakeParticipants.unshift({
         id: currentUserId,
         name: currentUser.name,
-        image: generateAIFace(),
+        image: generateConsistentAvatar(currentUserId),
         status: 'online'
       });
     }

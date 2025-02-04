@@ -1,7 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { faker } from '@faker-js/faker';
 import type { Participant } from '@/types/chat';
 
 interface ParticipantsListProps {
@@ -11,8 +10,8 @@ interface ParticipantsListProps {
 
 // Generate a consistent avatar URL for a given seed
 const generateConsistentAvatar = (seed: string) => {
-  faker.seed(seed.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0));
-  return faker.image.avatar();
+  const style = 'avataaars';
+  return `https://api.dicebear.com/7.x/${style}/svg?seed=${seed}`;
 };
 
 const ParticipantsList = ({ participants, currentUser }: ParticipantsListProps) => {

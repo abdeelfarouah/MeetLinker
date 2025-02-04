@@ -15,8 +15,8 @@ type ParticipantListProps = {
 
 // Generate a consistent avatar URL for a given seed
 const generateConsistentAvatar = (seed: string) => {
-  faker.seed(seed.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0));
-  return faker.image.avatar();
+  const style = 'avataaars';
+  return `https://api.dicebear.com/7.x/${style}/svg?seed=${seed}`;
 };
 
 const ParticipantList: React.FC<ParticipantListProps> = ({ participants }) => {
