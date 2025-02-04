@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { faker } from '@faker-js/faker/locale/fr';
 import { Card } from "@/components/ui/card";
 import VideoStreamsDisplay from '@/components/chat/VideoStreamsDisplay';
