@@ -33,11 +33,12 @@ const VoiceTranscription: React.FC<VoiceTranscriptionProps> = ({ stream, isMuted
       let interimTranscript = '';
 
       for (let i = event.resultIndex; i < event.results.length; ++i) {
+        const result = event.results[i][0].transcript;
         if (event.results[i].isFinal) {
-          finalTranscript += event.results[i][0].transcript;
+          finalTranscript += result;
           console.log('Final transcript:', finalTranscript);
         } else {
-          interimTranscript += event.results[i][0].transcript;
+          interimTranscript += result;
           console.log('Interim transcript:', interimTranscript);
         }
       }
@@ -52,27 +53,32 @@ const VoiceTranscription: React.FC<VoiceTranscriptionProps> = ({ stream, isMuted
       console.error('Speech recognition error:', event.error);
       setIsTranscribing(false);
       
-      // Always restart after error, regardless of mute state
+      // Always restart after error
       setTimeout(() => {
-        try {
-          recognitionInstance.start();
-        } catch (error) {
-          console.error('Error restarting after error:', error);
+        if (recognitionInstance) {
+          try {
+            recognitionInstance.start();
+            console.log('Restarting after error');
+          } catch (error) {
+            console.error('Error restarting after error:', error);
+          }
         }
       }, 1000);
     });
 
     recognitionInstance.addEventListener('end', () => {
-      console.log('Speech recognition ended, restarting...');
+      console.log('Speech recognition ended');
       setIsTranscribing(false);
       
-      // Always restart, regardless of mute state
+      // Always restart
       setTimeout(() => {
-        try {
-          recognitionInstance.start();
-          console.log('Speech recognition restarted successfully');
-        } catch (error) {
-          console.error('Error restarting speech recognition:', error);
+        if (recognitionInstance) {
+          try {
+            recognitionInstance.start();
+            console.log('Speech recognition restarted');
+          } catch (error) {
+            console.error('Error restarting speech recognition:', error);
+          }
         }
       }, 100);
     });
@@ -88,14 +94,16 @@ const VoiceTranscription: React.FC<VoiceTranscriptionProps> = ({ stream, isMuted
     }
 
     return () => {
-      try {
-        recognitionInstance.stop();
-        console.log('Speech recognition cleanup');
-      } catch (error) {
-        console.error('Error stopping speech recognition:', error);
+      if (recognitionInstance) {
+        try {
+          recognitionInstance.stop();
+          console.log('Speech recognition cleanup');
+        } catch (error) {
+          console.error('Error stopping speech recognition:', error);
+        }
       }
     };
-  }, [stream]); // Removed isMuted from dependencies to prevent restarts
+  }, [stream]); // Only depend on stream changes
 
   return (
     <div className="mt-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
