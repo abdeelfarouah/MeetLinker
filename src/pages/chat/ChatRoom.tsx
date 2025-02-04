@@ -99,7 +99,7 @@ const ChatRoom = () => {
   const handleSendMessage = async (content: string) => {
     try {
       const encryptedContent = await encryptMessage(content);
-      const newMessage = {
+      const newMessage: Message = {
         id: Date.now().toString(),
         content: encryptedContent,
         sender: currentUser.name,
