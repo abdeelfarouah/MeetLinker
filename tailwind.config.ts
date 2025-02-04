@@ -52,11 +52,24 @@ export default {
           offline: "hsl(0 84.2% 60.2%)",
           away: "hsl(48 96.5% 53.9%)",
         },
+        toast: {
+          background: "hsl(222.2 84% 4.9%)",
+          foreground: "hsl(210 40% 98%)",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      keyframes: {
+        "toast-slide-in-right": {
+          "0%": { transform: "translateX(100%)" },
+          "100%": { transform: "translateX(0)" },
+        },
+      },
+      animation: {
+        "toast-slide": "toast-slide-in-right 0.5s ease-out",
       },
     },
   },
