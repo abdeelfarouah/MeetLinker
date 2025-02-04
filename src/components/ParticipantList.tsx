@@ -1,5 +1,6 @@
 import React from 'react';
 import { Users } from 'lucide-react';
+import { faker } from '@faker-js/faker';
 
 type Participant = {
   id: string;
@@ -12,6 +13,12 @@ type ParticipantListProps = {
   participants: Participant[];
 };
 
+// Generate a consistent avatar URL for a given seed
+const generateConsistentAvatar = (seed: string) => {
+  faker.seed(seed.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0));
+  return faker.image.avatar();
+};
+
 const ParticipantList: React.FC<ParticipantListProps> = ({ participants }) => {
   return (
     <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg">
@@ -22,28 +29,33 @@ const ParticipantList: React.FC<ParticipantListProps> = ({ participants }) => {
       
       {participants.length > 0 ? (
         <ul className="space-y-3">
-          {participants.map((participant) => (
-            <li key={participant.id} className="flex items-center gap-3">
-              <img 
-                src={participant.image} 
-                alt={participant.name} 
-                className="w-10 h-10 rounded-full object-cover"
-              />
-              <span className="flex-1 font-medium text-gray-700 dark:text-gray-300">
-                {participant.name}
-              </span>
-              <span
-                className={`w-2.5 h-2.5 rounded-full ${
-                  participant.status === 'online'
-                    ? 'bg-green-500'
-                    : participant.status === 'offline'
-                    ? 'bg-red-500'
-                    : 'bg-yellow-500'
-                }`}
-                title={`Status: ${participant.status}`}
-              />
-            </li>
-          ))}
+          {participants.map((participant) => {
+            // Generate consistent avatar based on participant ID
+            const avatarUrl = generateConsistentAvatar(`participant-${participant.id}`);
+            
+            return (
+              <li key={participant.id} className="flex items-center gap-3">
+                <img 
+                  src={avatarUrl}
+                  alt={participant.name} 
+                  className="w-10 h-10 rounded-full object-cover"
+                />
+                <span className="flex-1 font-medium text-gray-700 dark:text-gray-300">
+                  {participant.name}
+                </span>
+                <span
+                  className={`w-2.5 h-2.5 rounded-full ${
+                    participant.status === 'online'
+                      ? 'bg-green-500'
+                      : participant.status === 'offline'
+                      ? 'bg-red-500'
+                      : 'bg-yellow-500'
+                  }`}
+                  title={`Status: ${participant.status}`}
+                />
+              </li>
+            );
+          })}
         </ul>
       ) : (
         <p className="text-gray-500 dark:text-gray-400 text-center py-4">
