@@ -1,11 +1,12 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 import { formatFrenchText } from '../utils/frenchTextFormatting';
 
 export const useSpeechRecognition = () => {
   const [transcript, setTranscript] = useState('');
   const [isRecording, setIsRecording] = useState(false);
-  const [recognition, setRecognition] = useState<any>(null);
+  const recognitionRef = useRef<any>(null);
+  const restartTimeoutRef = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
     if (!('webkitSpeechRecognition' in window)) {
@@ -42,28 +43,52 @@ export const useSpeechRecognition = () => {
       console.error('Speech recognition error:', event.error);
       toast.error(`Speech recognition error: ${event.error}`);
       setIsRecording(false);
+      
+      // Attempt to restart after error
+      if (isRecording) {
+        restartTimeoutRef.current = setTimeout(() => {
+          console.log('Attempting to restart speech recognition after error');
+          try {
+            recognitionInstance.start();
+          } catch (error) {
+            console.error('Failed to restart speech recognition:', error);
+          }
+        }, 1000);
+      }
     };
 
     recognitionInstance.onend = () => {
       console.log('Speech recognition ended');
       if (isRecording) {
-        recognitionInstance.start();
+        console.log('Restarting speech recognition');
+        try {
+          recognitionInstance.start();
+        } catch (error) {
+          console.error('Error restarting speech recognition:', error);
+        }
       }
     };
 
-    setRecognition(recognitionInstance);
+    recognitionRef.current = recognitionInstance;
 
     return () => {
-      if (recognitionInstance) {
-        recognitionInstance.stop();
+      if (restartTimeoutRef.current) {
+        clearTimeout(restartTimeoutRef.current);
+      }
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch (error) {
+          console.error('Error stopping speech recognition:', error);
+        }
       }
     };
   }, [isRecording]);
 
   const startRecording = useCallback(() => {
-    if (recognition) {
+    if (recognitionRef.current) {
       try {
-        recognition.start();
+        recognitionRef.current.start();
         setIsRecording(true);
         console.log('Speech recognition started');
         toast.success('Voice recording started');
@@ -72,16 +97,20 @@ export const useSpeechRecognition = () => {
         toast.error('Failed to start voice recording');
       }
     }
-  }, [recognition]);
+  }, []);
 
   const stopRecording = useCallback(() => {
-    if (recognition) {
-      recognition.stop();
-      setIsRecording(false);
-      console.log('Speech recognition stopped');
-      toast.success('Voice recording stopped');
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+        setIsRecording(false);
+        console.log('Speech recognition stopped');
+        toast.success('Voice recording stopped');
+      } catch (error) {
+        console.error('Error stopping speech recognition:', error);
+      }
     }
-  }, [recognition]);
+  }, []);
 
   const clearTranscript = useCallback(() => {
     setTranscript('');

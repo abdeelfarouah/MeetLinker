@@ -13,10 +13,21 @@ export const useWebSocketConnection = ({ url, onMessage, onError }: WebSocketCon
   const reconnectAttemptsRef = useRef(0);
   const maxReconnectAttempts = 3;
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
+  const isCleaningUpRef = useRef(false);
 
   const connect = useCallback(() => {
+    if (isCleaningUpRef.current) {
+      console.log('Skipping connection attempt during cleanup');
+      return;
+    }
+
     try {
       console.log('Attempting WebSocket connection to:', url);
+      if (wsRef.current?.readyState === WebSocket.CONNECTING) {
+        console.log('Connection already in progress, skipping');
+        return;
+      }
+
       wsRef.current = new WebSocket(url);
 
       wsRef.current.onopen = () => {
@@ -30,13 +41,13 @@ export const useWebSocketConnection = ({ url, onMessage, onError }: WebSocketCon
         console.log('WebSocket connection closed');
         setIsConnected(false);
         
-        if (reconnectAttemptsRef.current < maxReconnectAttempts) {
+        if (!isCleaningUpRef.current && reconnectAttemptsRef.current < maxReconnectAttempts) {
           console.log(`Attempting reconnect ${reconnectAttemptsRef.current + 1}/${maxReconnectAttempts}`);
           reconnectTimeoutRef.current = setTimeout(() => {
             reconnectAttemptsRef.current += 1;
             connect();
           }, 2000);
-        } else {
+        } else if (!isCleaningUpRef.current) {
           console.log('Max reconnection attempts reached');
           toast.error('Unable to connect to chat server. Please refresh the page.');
         }
@@ -72,14 +83,16 @@ export const useWebSocketConnection = ({ url, onMessage, onError }: WebSocketCon
 
     return () => {
       console.log('Cleaning up WebSocket connection');
+      isCleaningUpRef.current = true;
+      
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
       }
+      
       if (wsRef.current) {
         wsRef.current.close();
         wsRef.current = null;
       }
-      reconnectAttemptsRef.current = maxReconnectAttempts; // Prevent reconnection attempts during cleanup
     };
   }, [connect]);
 
