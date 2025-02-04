@@ -15,13 +15,13 @@ const ChatUI: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gray-100">
       <div className="container mx-auto px-4 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Main content area */}
           <div className="lg:col-span-3 space-y-6">
             {/* Video area */}
-            <div className="aspect-video bg-gray-100 rounded-lg shadow-lg">
+            <div className="aspect-video bg-white rounded-lg shadow-lg">
               <div className="h-full flex items-center justify-center">
                 <p className="text-gray-500">Video stream will appear here</p>
               </div>
@@ -39,7 +39,7 @@ const ChatUI: React.FC = () => {
                     </Avatar>
                     <div className="flex-1">
                       <p className="text-sm font-medium">{participant.name}</p>
-                      <div className="mt-1 bg-gray-100 p-3 rounded-lg">
+                      <div className="mt-1 bg-gray-50 p-3 rounded-lg">
                         <p className="text-sm">Welcome to the chat!</p>
                       </div>
                     </div>
