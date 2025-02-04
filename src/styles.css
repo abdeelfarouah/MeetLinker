@@ -53,7 +53,7 @@
   }
 
   body {
-    @apply text-foreground bg-white dark:bg-gray-900;
+    @apply bg-background text-foreground;
   }
 
   #root {
@@ -61,13 +61,6 @@
   }
 }
 
-@layer components {
-  .btn {
-    @apply bg-primary text-primary-foreground hover:bg-primary/90;
-  }
-}
-
-/* Scrollable areas */
 .scrollable {
   @apply overflow-y-auto overflow-x-hidden;
   scrollbar-width: thin;
