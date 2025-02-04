@@ -31,6 +31,24 @@ const ChatRoom = () => {
     status: 'online' as const
   };
 
+  const handleSendMessage = (content: string) => {
+    try {
+      const encryptedContent = encryptMessage(content);
+      const newMessage: Message = {
+        id: Date.now().toString(),
+        content: encryptedContent,
+        sender: currentUser.name,
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, newMessage]);
+      console.log('Message sent:', { content, encrypted: encryptedContent });
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast.error('Error sending message');
+    }
+  };
+
   const startVideo = async () => {
     try {
       if (isVideoOn) {
@@ -95,22 +113,6 @@ const ChatRoom = () => {
       }
     };
   }, [videoStream, screenStream]);
-
-  const handleSendMessage = async (content: string) => {
-    try {
-      const encryptedContent = await encryptMessage(content);
-      const newMessage: Message = {
-        id: Date.now().toString(),
-        content: encryptedContent,
-        sender: currentUser.name,
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, newMessage]);
-    } catch (error) {
-      console.error('Error sending message:', error);
-      toast.error('Error sending message');
-    }
-  };
 
   return (
     <div className="min-h-screen bg-background p-4 space-y-4">
