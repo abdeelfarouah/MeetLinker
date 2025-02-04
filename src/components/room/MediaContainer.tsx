@@ -1,5 +1,5 @@
 import React from 'react';
-import VideoStream from '../VideoStream';
+import VideoStream from '@/features/video/components/VideoStream';
 import ScreenShare from '../ScreenShare';
 import VoiceTranscription from '../VoiceTranscription';
 
@@ -18,6 +18,13 @@ const MediaContainer: React.FC<MediaContainerProps> = ({
   isVideoOff,
   onEndScreenShare,
 }) => {
+  console.log('MediaContainer: Rendering', { 
+    hasScreenShare: !!screenShareStream, 
+    hasUserMedia: !!userMediaStream,
+    isMuted,
+    isVideoOff 
+  });
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {screenShareStream && (
@@ -30,8 +37,8 @@ const MediaContainer: React.FC<MediaContainerProps> = ({
         <>
           <VideoStream
             stream={userMediaStream}
+            isActive={!isVideoOff}
             isMuted={isMuted}
-            isVideoOff={isVideoOff}
           />
           <VoiceTranscription
             stream={userMediaStream}
