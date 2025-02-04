@@ -1,7 +1,7 @@
 type RecognitionInstance = any; // Using any for webkitSpeechRecognition type
 
 export const setupSpeechRecognition = (
-  onTranscriptUpdate: (transcript: string) => void,
+  setTranscript: React.Dispatch<React.SetStateAction<string>>,
   onStatusChange: (isTranscribing: boolean) => void
 ) => {
   if (!('webkitSpeechRecognition' in window)) {
@@ -34,10 +34,9 @@ export const setupSpeechRecognition = (
       }
     }
 
-    onTranscriptUpdate(prev => {
-      const newTranscript = finalTranscript || interimTranscript;
-      return newTranscript ? `${prev} ${newTranscript}`.trim() : prev;
-    });
+    if (finalTranscript || interimTranscript) {
+      setTranscript(prev => `${prev} ${finalTranscript || interimTranscript}`.trim());
+    }
   };
 
   return recognition;
