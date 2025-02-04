@@ -1,20 +1,17 @@
 import { useState, useEffect } from 'react';
-import { toast } from 'sonner';
 
 export const useMediaStream = () => {
   const [videoStream, setVideoStream] = useState<MediaStream | null>(null);
   const [screenStream, setScreenStream] = useState<MediaStream | null>(null);
   const [isVideoOn, setIsVideoOn] = useState(false);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const startVideo = async () => {
     try {
-      if (isVideoOn) {
-        console.log('Stopping video stream');
-        if (videoStream) {
-          videoStream.getTracks().forEach(track => track.stop());
-          setVideoStream(null);
-        }
+      if (isVideoOn && videoStream) {
+        videoStream.getTracks().forEach(track => track.stop());
+        setVideoStream(null);
         setIsVideoOn(false);
       } else {
         console.log('Starting video stream');
@@ -28,21 +25,19 @@ export const useMediaStream = () => {
         console.log('Video stream obtained:', stream);
         setVideoStream(stream);
         setIsVideoOn(true);
+        setError(null);
       }
     } catch (error) {
-      console.error('Error accessing camera:', error);
-      toast.error('Error accessing camera');
+      console.error('Error accessing video:', error);
+      setError('Failed to access camera');
     }
   };
 
   const startScreenShare = async () => {
     try {
-      if (isScreenSharing) {
-        console.log('Stopping screen share');
-        if (screenStream) {
-          screenStream.getTracks().forEach(track => track.stop());
-          setScreenStream(null);
-        }
+      if (isScreenSharing && screenStream) {
+        screenStream.getTracks().forEach(track => track.stop());
+        setScreenStream(null);
         setIsScreenSharing(false);
       } else {
         console.log('Starting screen share');
@@ -74,7 +69,7 @@ export const useMediaStream = () => {
       }
     } catch (error) {
       console.error('Error sharing screen:', error);
-      toast.error('Error sharing screen');
+      setError('Failed to share screen');
     }
   };
 
@@ -94,6 +89,7 @@ export const useMediaStream = () => {
     screenStream,
     isVideoOn,
     isScreenSharing,
+    error,
     startVideo,
     startScreenShare
   };
