@@ -13,13 +13,26 @@ type Participant = {
   status: 'online' | 'offline' | 'no-response';
 };
 
+// Generate a consistent avatar URL for a given seed
+const generateConsistentAvatar = (seed: string) => {
+  // Use the seed to generate a consistent avatar URL
+  faker.seed(seed.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0));
+  return faker.image.avatar();
+};
+
 const generateFakeParticipants = (count: number): Participant[] => {
-  return Array.from({ length: count }, () => ({
-    id: faker.string.uuid(),
-    name: faker.person.fullName(),
-    image: faker.image.avatar(),
-    status: faker.helpers.arrayElement(['online', 'offline', 'no-response'] as const)
-  }));
+  return Array.from({ length: count }, (_, index) => {
+    const id = faker.string.uuid();
+    // Use index + id as seed for consistent avatar generation
+    const avatarSeed = `participant-${index}-${id}`;
+    
+    return {
+      id,
+      name: faker.person.fullName(),
+      image: generateConsistentAvatar(avatarSeed),
+      status: faker.helpers.arrayElement(['online', 'offline', 'no-response'] as const)
+    };
+  });
 };
 
 export const useParticipants = (currentUser: User | null) => {
@@ -27,10 +40,12 @@ export const useParticipants = (currentUser: User | null) => {
 
   useEffect(() => {
     if (currentUser) {
+      const hostAvatarSeed = `host-${currentUser.email}`;
+      
       const currentUserParticipant: Participant = {
         id: '0',
         name: `${currentUser.name} (Host)`,
-        image: faker.image.avatar(),
+        image: generateConsistentAvatar(hostAvatarSeed),
         status: 'online'
       };
       
