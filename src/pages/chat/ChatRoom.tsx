@@ -1,11 +1,11 @@
 import { faker } from '@faker-js/faker/locale/fr';
 import { Card } from "@/components/ui/card";
 import VideoStreamsDisplay from '@/components/chat/VideoStreamsDisplay';
-import MessageList from '@/components/chat/MessageList';
-import MessageInput from '@/components/chat/MessageInput';
-import VideoControls from '@/components/chat/VideoControls';
-import TranscriptionDisplay from '@/components/chat/TranscriptionDisplay';
-import ParticipantsList from '@/components/chat/ParticipantsList';
+import MessageList from '@/features/chat/components/MessageList';
+import MessageInput from '@/features/chat/components/MessageInput';
+import VideoControls from '@/features/chat/components/VideoControls';
+import TranscriptionDisplay from '@/features/chat/components/TranscriptionDisplay';
+import ParticipantsList from '@/features/chat/components/ParticipantsList';
 import { useMediaStream } from '@/hooks/useMediaStream';
 import { useMessages } from '@/hooks/useMessages';
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
