@@ -27,6 +27,8 @@ export const useSpeechRecognition = () => {
   const [currentLanguage, setCurrentLanguage] = useState<SupportedLanguage>('fr-FR');
   const recognitionRef = useRef<any>(null);
   const isCleaningUpRef = useRef(false);
+  const restartTimeoutRef = useRef<NodeJS.Timeout>();
+  const continuousTranscriptRef = useRef('');
 
   const initRecognition = useCallback(() => {
     if (!('webkitSpeechRecognition' in window)) {
@@ -43,7 +45,6 @@ export const useSpeechRecognition = () => {
     recognition.onstart = () => {
       console.log(`Reconnaissance vocale démarrée en ${languageNames[currentLanguage]}`);
       setIsRecording(true);
-      toast.success(`Reconnaissance vocale active en ${languageNames[currentLanguage]}`);
     };
 
     recognition.onresult = (event: any) => {
@@ -54,48 +55,60 @@ export const useSpeechRecognition = () => {
         const transcript = event.results[i][0].transcript;
         if (event.results[i].isFinal) {
           finalTranscript += transcript;
+          continuousTranscriptRef.current += ' ' + transcript;
         } else {
           interimTranscript += transcript;
         }
       }
 
       if (finalTranscript) {
-        setTranscript(prev => {
-          const formattedText = currentLanguage === 'fr-FR' 
-            ? formatFrenchText(finalTranscript)
-            : finalTranscript;
-          return prev ? `${prev} ${formattedText}` : formattedText;
-        });
+        setTranscript(continuousTranscriptRef.current.trim());
       } else if (interimTranscript) {
-        setTranscript(prev => {
-          const lastSentence = prev.split(/[.!?。！？]/).pop() || '';
-          return prev.replace(lastSentence, '') + interimTranscript;
-        });
+        setTranscript(continuousTranscriptRef.current + ' ' + interimTranscript);
       }
     };
 
     recognition.onerror = (event: any) => {
       console.error('Erreur de reconnaissance vocale:', event.error);
       if (event.error !== 'no-speech' && !isCleaningUpRef.current) {
-        toast.error(`Erreur de reconnaissance vocale: ${event.error}`);
+        restartRecognition();
       }
     };
 
     recognition.onend = () => {
-      console.log('Reconnaissance vocale terminée');
-      if (isRecording && !isCleaningUpRef.current) {
-        console.log('Redémarrage de la reconnaissance vocale');
-        try {
-          recognition.start();
-        } catch (error) {
-          console.error('Erreur lors du redémarrage:', error);
-          setIsRecording(false);
-        }
+      console.log('Session de reconnaissance terminée, redémarrage...');
+      if (!isCleaningUpRef.current) {
+        restartRecognition();
       }
     };
 
     return recognition;
-  }, [currentLanguage, isRecording]);
+  }, [currentLanguage]);
+
+  const restartRecognition = useCallback(() => {
+    if (restartTimeoutRef.current) {
+      clearTimeout(restartTimeoutRef.current);
+    }
+
+    restartTimeoutRef.current = setTimeout(() => {
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch (error) {
+          console.error('Erreur lors de l\'arrêt:', error);
+        }
+      }
+
+      recognitionRef.current = initRecognition();
+      if (recognitionRef.current && isRecording) {
+        try {
+          recognitionRef.current.start();
+        } catch (error) {
+          console.error('Erreur lors du redémarrage:', error);
+        }
+      }
+    }, 300);
+  }, [initRecognition, isRecording]);
 
   useEffect(() => {
     if (isRecording && !recognitionRef.current) {
@@ -105,12 +118,15 @@ export const useSpeechRecognition = () => {
           recognitionRef.current.start();
         } catch (error) {
           console.error('Erreur au démarrage initial:', error);
-          setIsRecording(false);
+          restartRecognition();
         }
       }
     }
 
     return () => {
+      if (restartTimeoutRef.current) {
+        clearTimeout(restartTimeoutRef.current);
+      }
       if (recognitionRef.current) {
         isCleaningUpRef.current = true;
         try {
@@ -122,10 +138,11 @@ export const useSpeechRecognition = () => {
         isCleaningUpRef.current = false;
       }
     };
-  }, [isRecording, initRecognition]);
+  }, [isRecording, initRecognition, restartRecognition]);
 
   const startRecording = useCallback(() => {
     setIsRecording(true);
+    continuousTranscriptRef.current = '';
   }, []);
 
   const stopRecording = useCallback(() => {
@@ -141,27 +158,15 @@ export const useSpeechRecognition = () => {
   }, []);
 
   const changeLanguage = useCallback((newLanguage: SupportedLanguage) => {
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
-      recognitionRef.current = null;
-    }
     setCurrentLanguage(newLanguage);
-    if (isRecording) {
-      setTimeout(() => {
-        recognitionRef.current = initRecognition();
-        if (recognitionRef.current) {
-          try {
-            recognitionRef.current.start();
-          } catch (error) {
-            console.error('Erreur au redémarrage avec nouvelle langue:', error);
-          }
-        }
-      }, 100);
+    if (recognitionRef.current) {
+      restartRecognition();
     }
-  }, [initRecognition, isRecording]);
+  }, [restartRecognition]);
 
   const clearTranscript = useCallback(() => {
     setTranscript('');
+    continuousTranscriptRef.current = '';
   }, []);
 
   return {
