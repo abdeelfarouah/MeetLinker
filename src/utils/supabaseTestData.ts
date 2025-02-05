@@ -18,8 +18,15 @@ export const insertTestData = async () => {
       ])
       .select();
 
-    if (profileError) throw profileError;
+    if (profileError) {
+      console.error('Profile creation error:', profileError);
+      throw profileError;
+    }
     console.log('Test profile created:', profile);
+
+    if (!profile || profile.length === 0) {
+      throw new Error('No profile was created');
+    }
 
     // Create a test room
     const { data: room, error: roomError } = await supabase
@@ -32,8 +39,15 @@ export const insertTestData = async () => {
       ])
       .select();
 
-    if (roomError) throw roomError;
+    if (roomError) {
+      console.error('Room creation error:', roomError);
+      throw roomError;
+    }
     console.log('Test room created:', room);
+
+    if (!room || room.length === 0) {
+      throw new Error('No room was created');
+    }
 
     // Create test messages
     const { data: messages, error: messageError } = await supabase
@@ -52,7 +66,10 @@ export const insertTestData = async () => {
       ])
       .select();
 
-    if (messageError) throw messageError;
+    if (messageError) {
+      console.error('Message creation error:', messageError);
+      throw messageError;
+    }
     console.log('Test messages created:', messages);
 
     return { profile, room, messages };

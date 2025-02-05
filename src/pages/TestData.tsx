@@ -14,14 +14,39 @@ const TestData = () => {
 
   const fetchData = async () => {
     console.log('Fetching current data...');
-    
-    const { data: profilesData } = await supabase.from('profiles').select('*');
-    const { data: roomsData } = await supabase.from('rooms').select('*');
-    const { data: messagesData } = await supabase.from('messages').select('*');
+    try {
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('*');
+      if (profilesError) throw profilesError;
 
-    setProfiles(profilesData || []);
-    setRooms(roomsData || []);
-    setMessages(messagesData || []);
+      const { data: roomsData, error: roomsError } = await supabase
+        .from('rooms')
+        .select('*');
+      if (roomsError) throw roomsError;
+
+      const { data: messagesData, error: messagesError } = await supabase
+        .from('messages')
+        .select('*');
+      if (messagesError) throw messagesError;
+
+      setProfiles(profilesData || []);
+      setRooms(roomsData || []);
+      setMessages(messagesData || []);
+      
+      console.log('Data fetched successfully:', {
+        profiles: profilesData,
+        rooms: roomsData,
+        messages: messagesData
+      });
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to fetch current data",
+      });
+    }
   };
 
   const handleInsertTestData = async () => {
