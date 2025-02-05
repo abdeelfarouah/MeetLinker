@@ -15,7 +15,6 @@ type Participant = {
 
 // Generate a consistent avatar URL for a given seed
 const generateConsistentAvatar = (seed: string) => {
-  // Use the seed to generate a consistent avatar URL
   faker.seed(seed.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0));
   return faker.image.avatar();
 };
@@ -23,7 +22,6 @@ const generateConsistentAvatar = (seed: string) => {
 const generateFakeParticipants = (count: number): Participant[] => {
   return Array.from({ length: count }, (_, index) => {
     const id = faker.string.uuid();
-    // Use index + id as seed for consistent avatar generation
     const avatarSeed = `participant-${index}-${id}`;
     
     return {
@@ -52,11 +50,13 @@ export const useParticipants = (currentUser: User | null) => {
       const fakeParticipants = generateFakeParticipants(5);
       setParticipants([currentUserParticipant, ...fakeParticipants]);
 
+      // Update other participants' status less frequently
       const statusInterval = setInterval(() => {
         setParticipants(prevParticipants => 
           prevParticipants.map(participant => {
             if (participant.id === '0') return participant;
-            if (Math.random() < 0.1) {
+            // Reduce frequency of status changes
+            if (Math.random() < 0.2) {
               const statuses: ('online' | 'offline' | 'no-response')[] = ['online', 'offline', 'no-response'];
               const newStatus = statuses[Math.floor(Math.random() * statuses.length)];
               return { ...participant, status: newStatus };
@@ -64,9 +64,12 @@ export const useParticipants = (currentUser: User | null) => {
             return participant;
           })
         );
-      }, 5000);
+      }, 10000);
 
-      return () => clearInterval(statusInterval);
+      return () => {
+        console.log('Cleaning up participant status interval');
+        clearInterval(statusInterval);
+      };
     }
   }, [currentUser]);
 

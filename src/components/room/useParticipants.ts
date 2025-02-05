@@ -23,6 +23,7 @@ const generateConsistentAvatar = (seed: string) => {
 export const useParticipants = (currentUser: User | null) => {
   const [participants, setParticipants] = useState<Participant[]>([]);
 
+  // Generate initial participants only once when currentUser changes
   useEffect(() => {
     // Generate 5 fake participants plus the current user
     const fakeParticipants: Participant[] = Array.from({ length: 5 }, () => {
@@ -43,20 +44,20 @@ export const useParticipants = (currentUser: User | null) => {
         name: currentUser.name,
         image: generateConsistentAvatar(currentUserId),
         status: 'online',
-        isHost: true // Mark current user as host
+        isHost: true
       });
     }
 
     setParticipants(fakeParticipants);
 
-    // Update participants status randomly every 5 seconds
+    // Only update non-host participants' status every 10 seconds instead of 5
     const statusInterval = setInterval(() => {
       setParticipants(prevParticipants => 
         prevParticipants.map(participant => {
-          // Don't change host status
           if (participant.isHost) return participant;
           
-          if (Math.random() < 0.1) {
+          // Reduce frequency of status changes (20% chance instead of 100%)
+          if (Math.random() < 0.2) {
             const statuses: ('online' | 'offline' | 'no-response')[] = ['online', 'offline', 'no-response'];
             const newStatus = statuses[Math.floor(Math.random() * statuses.length)];
             return { ...participant, status: newStatus };
@@ -64,12 +65,13 @@ export const useParticipants = (currentUser: User | null) => {
           return participant;
         })
       );
-    }, 5000);
+    }, 10000); // Increased interval from 5s to 10s
 
-    return () => clearInterval(statusInterval);
-  }, [currentUser]);
-
-  console.log('Generated participants:', participants); // Debug log
+    return () => {
+      console.log('Cleaning up participant status interval');
+      clearInterval(statusInterval);
+    };
+  }, [currentUser]); // Only re-run when currentUser changes
 
   return { participants };
 };
