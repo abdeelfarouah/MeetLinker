@@ -11,6 +11,7 @@ type Participant = {
   name: string;
   image: string;
   status: 'online' | 'offline' | 'no-response';
+  isHost?: boolean;
 };
 
 // Generate a consistent avatar URL for a given seed
@@ -41,11 +42,31 @@ export const useParticipants = (currentUser: User | null) => {
         id: currentUserId,
         name: currentUser.name,
         image: generateConsistentAvatar(currentUserId),
-        status: 'online'
+        status: 'online',
+        isHost: true // Mark current user as host
       });
     }
 
     setParticipants(fakeParticipants);
+
+    // Update participants status randomly every 5 seconds
+    const statusInterval = setInterval(() => {
+      setParticipants(prevParticipants => 
+        prevParticipants.map(participant => {
+          // Don't change host status
+          if (participant.isHost) return participant;
+          
+          if (Math.random() < 0.1) {
+            const statuses: ('online' | 'offline' | 'no-response')[] = ['online', 'offline', 'no-response'];
+            const newStatus = statuses[Math.floor(Math.random() * statuses.length)];
+            return { ...participant, status: newStatus };
+          }
+          return participant;
+        })
+      );
+    }, 5000);
+
+    return () => clearInterval(statusInterval);
   }, [currentUser]);
 
   console.log('Generated participants:', participants); // Debug log
