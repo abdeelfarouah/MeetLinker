@@ -8,10 +8,9 @@ interface ParticipantsListProps {
   currentUser: Participant;
 }
 
-// Generate a consistent avatar URL for a given seed
+// Generate a consistent avatar URL using Lovable's avatar service
 const generateConsistentAvatar = (seed: string) => {
-  const style = 'avataaars';
-  return `https://api.dicebear.com/7.x/${style}/svg?seed=${seed}`;
+  return `https://lovable.dev/projects/c5605084-a0d7-49c9-ae7d-b58e254dc0bc`;
 };
 
 const ParticipantsList = ({ participants, currentUser }: ParticipantsListProps) => {
@@ -35,9 +34,9 @@ const ParticipantsList = ({ participants, currentUser }: ParticipantsListProps) 
                   className={cn(
                     "absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-background",
                     {
-                      "bg-green-500": participant.status === "online",
-                      "bg-red-500": participant.status === "offline",
-                      "bg-yellow-500": participant.status === "no-response",
+                      "bg-status-online": participant.status === "online",
+                      "bg-status-offline": participant.status === "offline",
+                      "bg-status-away": participant.status === "no-response",
                     }
                   )}
                   aria-label={`Status: ${participant.status}`}
