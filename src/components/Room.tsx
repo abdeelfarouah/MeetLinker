@@ -1,10 +1,10 @@
+
 import React, { useState } from 'react';
 import RoomHeader from './room/RoomHeader';
 import MediaError from './room/MediaError';
 import MediaContainer from './room/MediaContainer';
 import Controls from './Controls';
 import ParticipantList from './ParticipantList';
-import ChatBox from './ChatBox';
 import { useMediaHandlers } from './room/useMediaHandlers';
 import { useParticipants } from './room/useParticipants';
 
@@ -22,8 +22,6 @@ type RoomProps = {
 };
 
 const Room: React.FC<RoomProps> = ({ roomCode, handleLogout, currentUser, theme, setTheme }) => {
-  const [messages, setMessages] = useState<{ id: number; text: string; read: boolean; }[]>([]);
-  
   const {
     userMediaStream,
     screenShareStream,
@@ -66,9 +64,8 @@ const Room: React.FC<RoomProps> = ({ roomCode, handleLogout, currentUser, theme,
             onScreenShare={handleScreenShare}
           />
         </div>
-        <div className="lg:col-span-1 space-y-4">
+        <div className="lg:col-span-1">
           <ParticipantList participants={participants} />
-          <ChatBox messages={messages} setMessages={setMessages} />
         </div>
       </div>
     </div>
