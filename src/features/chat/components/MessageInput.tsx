@@ -8,9 +8,10 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 
 interface MessageInputProps {
   onSendMessage: (message: string) => void;
+  autoFocus?: boolean;
 }
 
-const MessageInput = ({ onSendMessage }: MessageInputProps) => {
+const MessageInput = ({ onSendMessage, autoFocus = true }: MessageInputProps) => {
   const [message, setMessage] = useState("");
   
   const handleSubmit = (e: React.FormEvent) => {
@@ -34,11 +35,16 @@ const MessageInput = ({ onSendMessage }: MessageInputProps) => {
       <div className="flex-1 flex gap-2">
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="outline" size="icon" type="button">
+            <Button 
+              variant="outline" 
+              size="icon" 
+              type="button"
+              className="focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+            >
               <Smile className="h-4 w-4" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-80 p-0">
+          <PopoverContent className="w-80 p-0" side="top">
             <Picker
               data={data}
               onEmojiSelect={addEmoji}
@@ -51,10 +57,14 @@ const MessageInput = ({ onSendMessage }: MessageInputProps) => {
           value={message}
           onChange={handleInputChange}
           placeholder="Write your message..."
-          className="flex-1"
+          className="flex-1 focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+          autoFocus={autoFocus}
         />
       </div>
-      <Button type="submit">
+      <Button 
+        type="submit"
+        className="focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+      >
         <Send className="h-4 w-4 mr-2" />
         Send
       </Button>

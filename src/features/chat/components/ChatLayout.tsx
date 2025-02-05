@@ -62,7 +62,6 @@ const ChatLayout: React.FC<ChatLayoutProps> = ({ roomId, userId }) => {
     timestamp: new Date(msg.created_at),
   }));
 
-  // Use the WebSocket hook with debounced resize handling
   const { isConnected, sendMessage: sendWebSocketMessage } = useWebSocketConnection({
     url: `wss://${window.location.hostname}`,
     onMessage: (event) => {
@@ -93,32 +92,6 @@ const ChatLayout: React.FC<ChatLayoutProps> = ({ roomId, userId }) => {
       });
     }
   };
-
-  // Use ResizeObserver with debouncing
-  useEffect(() => {
-    if (!layoutRef.current) return;
-
-    let timeoutId: NodeJS.Timeout;
-    const resizeObserver = new ResizeObserver((entries) => {
-      // Debounce resize operations
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
-        for (const entry of entries) {
-          if (entry.target === layoutRef.current) {
-            // Handle resize if needed
-            console.log('Layout resized');
-          }
-        }
-      }, 100); // 100ms debounce
-    });
-
-    resizeObserver.observe(layoutRef.current);
-
-    return () => {
-      clearTimeout(timeoutId);
-      resizeObserver.disconnect();
-    };
-  }, []);
 
   return (
     <div ref={layoutRef} className="min-h-screen bg-background p-4 space-y-4">
@@ -164,6 +137,7 @@ const ChatLayout: React.FC<ChatLayoutProps> = ({ roomId, userId }) => {
                     />
                     <MessageInput 
                       onSendMessage={handleMessageSubmit}
+                      autoFocus={false} // Add this to prevent focus issues
                     />
                   </Card>
                 </div>
