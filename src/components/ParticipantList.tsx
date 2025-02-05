@@ -13,10 +13,9 @@ type ParticipantListProps = {
   participants: Participant[];
 };
 
-// Generate a consistent avatar URL for a given seed
+// Generate a consistent avatar URL using Lovable's avatar service
 const generateConsistentAvatar = (seed: string) => {
-  const style = 'avataaars';
-  return `https://api.dicebear.com/7.x/${style}/svg?seed=${seed}`;
+  return `https://lovable.dev/projects/c5605084-a0d7-49c9-ae7d-b58e254dc0bc`;
 };
 
 const ParticipantList: React.FC<ParticipantListProps> = ({ participants }) => {
