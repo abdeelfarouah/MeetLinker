@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import RoomHeader from './room/RoomHeader';
 import MediaError from './room/MediaError';
 import MediaContainer from './room/MediaContainer';
@@ -7,6 +7,7 @@ import Controls from './Controls';
 import ParticipantList from './ParticipantList';
 import { useMediaHandlers } from './room/useMediaHandlers';
 import { useParticipants } from './room/useParticipants';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 type User = {
   email: string;
@@ -22,6 +23,8 @@ type RoomProps = {
 };
 
 const Room: React.FC<RoomProps> = ({ roomCode, handleLogout, currentUser, theme, setTheme }) => {
+  const isMobile = useIsMobile();
+  
   const {
     userMediaStream,
     screenShareStream,
@@ -37,7 +40,7 @@ const Room: React.FC<RoomProps> = ({ roomCode, handleLogout, currentUser, theme,
   const { participants } = useParticipants(currentUser);
 
   return (
-    <div className={`min-h-screen bg-gray-100 dark:bg-gray-900 p-4`}>
+    <div className="h-screen flex flex-col bg-background overflow-hidden">
       <RoomHeader 
         roomCode={roomCode}
         handleLogout={handleLogout}
@@ -47,15 +50,17 @@ const Room: React.FC<RoomProps> = ({ roomCode, handleLogout, currentUser, theme,
 
       <MediaError error={mediaError} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-        <div className="lg:col-span-3 space-y-4">
-          <MediaContainer
-            screenShareStream={screenShareStream}
-            userMediaStream={userMediaStream}
-            isMuted={isMuted}
-            isVideoOff={isVideoOff}
-            onEndScreenShare={handleEndScreenShare}
-          />
+      <div className="flex-1 flex flex-col lg:flex-row gap-4 p-4 overflow-hidden">
+        <div className="flex-1 flex flex-col gap-4 min-h-0">
+          <div className="flex-1 min-h-0">
+            <MediaContainer
+              screenShareStream={screenShareStream}
+              userMediaStream={userMediaStream}
+              isMuted={isMuted}
+              isVideoOff={isVideoOff}
+              onEndScreenShare={handleEndScreenShare}
+            />
+          </div>
           <Controls
             isMuted={isMuted}
             isVideoOff={isVideoOff}
@@ -64,7 +69,8 @@ const Room: React.FC<RoomProps> = ({ roomCode, handleLogout, currentUser, theme,
             onScreenShare={handleScreenShare}
           />
         </div>
-        <div className="lg:col-span-1">
+        
+        <div className={`${isMobile ? 'h-48' : 'w-80'} flex-shrink-0 overflow-y-auto`}>
           <ParticipantList participants={participants} />
         </div>
       </div>
@@ -73,3 +79,4 @@ const Room: React.FC<RoomProps> = ({ roomCode, handleLogout, currentUser, theme,
 };
 
 export default Room;
+

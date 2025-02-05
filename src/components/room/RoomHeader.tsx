@@ -1,5 +1,7 @@
+
 import React from 'react';
 import { Button } from "@/components/ui/button";
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface RoomHeaderProps {
   roomCode: string;
@@ -8,19 +10,33 @@ interface RoomHeaderProps {
   setTheme: (theme: 'light' | 'dark') => void;
 }
 
-const RoomHeader: React.FC<RoomHeaderProps> = ({ roomCode, handleLogout, theme, setTheme }) => {
+const RoomHeader: React.FC<RoomHeaderProps> = ({ 
+  roomCode, 
+  handleLogout, 
+  theme, 
+  setTheme 
+}) => {
+  const isMobile = useIsMobile();
+
   return (
-    <header className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 shadow-md">
-      <h1 className="text-xl font-bold text-gray-900 dark:text-white">Room: {roomCode}</h1>
-      <div className="flex items-center space-x-4">
-        <Button 
+    <header className="flex items-center justify-between p-4 bg-card border-b">
+      <h1 className={`font-bold ${isMobile ? 'text-lg' : 'text-xl'} text-foreground`}>
+        Room: {roomCode}
+      </h1>
+      <div className="flex items-center gap-2">
+        <Button
           variant="outline"
+          size={isMobile ? "sm" : "default"}
           onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
         >
-          {theme === 'light' ? 'Dark Mode' : 'Light Mode'}
+          {theme === 'light' ? 'Dark' : 'Light'}
         </Button>
-        <Button variant="destructive" onClick={handleLogout}>
-          Logout
+        <Button
+          variant="destructive"
+          size={isMobile ? "sm" : "default"}
+          onClick={handleLogout}
+        >
+          Exit
         </Button>
       </div>
     </header>
@@ -28,3 +44,4 @@ const RoomHeader: React.FC<RoomHeaderProps> = ({ roomCode, handleLogout, theme, 
 };
 
 export default RoomHeader;
+
