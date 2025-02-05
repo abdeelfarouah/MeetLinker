@@ -1,53 +1,77 @@
 import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '../../lib/supabase';
-import { useSupabaseMessages } from '../../hooks/useSupabaseMessages';
-import AuthComponent from '../../components/Auth';
-import MessageList from '../../features/chat/components/MessageList';
-import MessageInput from '../../features/chat/components/MessageInput';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import ChatLayout from '@/features/chat/components/ChatLayout';
 import { toast } from 'sonner';
 
 const ChatRoom = () => {
   const navigate = useNavigate();
-  const [session, setSession] = React.useState(null);
-  const roomId = 'default-room'; // You can make this dynamic later
+  const { roomId } = useParams();
+  const { user } = useAuth();
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    });
+  // Fetch or create room
+  const { data: room, isLoading: isRoomLoading } = useQuery({
+    queryKey: ['room', roomId],
+    queryFn: async () => {
+      if (roomId === 'new') {
+        // Create a new room
+        console.log('Creating new room');
+        const { data: newRoom, error: createError } = await supabase
+          .from('rooms')
+          .insert([
+            {
+              name: `Room ${new Date().toISOString()}`,
+              created_by: user?.id,
+            },
+          ])
+          .select()
+          .single();
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
+        if (createError) {
+          console.error('Error creating room:', createError);
+          toast.error('Failed to create room');
+          throw createError;
+        }
 
-    return () => subscription.unsubscribe();
-  }, []);
+        // Redirect to the new room
+        navigate(`/chat/${newRoom.id}`, { replace: true });
+        return newRoom;
+      } else {
+        // Fetch existing room
+        console.log('Fetching room:', roomId);
+        const { data: existingRoom, error: fetchError } = await supabase
+          .from('rooms')
+          .select('*')
+          .eq('id', roomId)
+          .single();
 
-  const { messages, isLoading, sendMessage } = useSupabaseMessages(
-    roomId,
-    session?.user?.id
-  );
+        if (fetchError) {
+          console.error('Error fetching room:', fetchError);
+          toast.error('Failed to fetch room');
+          throw fetchError;
+        }
 
-  if (!session) {
-    return <AuthComponent />;
+        return existingRoom;
+      }
+    },
+    enabled: !!user,
+  });
+
+  if (!user) {
+    return <div>Please log in to access chat rooms.</div>;
+  }
+
+  if (isRoomLoading) {
+    return <div>Loading room...</div>;
   }
 
   return (
-    <div className="h-screen flex flex-col bg-background">
-      <div className="flex-1 overflow-y-auto p-4">
-        <MessageList messages={messages} currentUserId={session.user.id} />
-      </div>
-      <div className="p-4 border-t">
-        <MessageInput
-          onSendMessage={(content) => {
-            sendMessage(content);
-          }}
-        />
-      </div>
-    </div>
+    <ChatLayout 
+      roomId={room?.id || ''} 
+      userId={user.id} 
+    />
   );
 };
 
