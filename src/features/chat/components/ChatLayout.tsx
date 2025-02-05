@@ -42,10 +42,12 @@ const ChatLayout = () => {
     status: 'online' as const
   };
 
-  const { messages, handleSendMessage } = useMessages(currentUser.name, currentUser.id, currentUser.avatar);
+  // Updated to use roomId parameter
+  const roomId = 'default-room'; // You can make this dynamic based on your needs
+  const { messages, isLoading, sendMessage } = useMessages(roomId, userId);
 
   // Use the new WebSocket hook
-  const { isConnected, sendMessage } = useWebSocketConnection({
+  const { isConnected, sendMessage: sendWebSocketMessage } = useWebSocketConnection({
     url: `wss://${window.location.hostname}`,
     onMessage: (event) => {
       console.log('Message received:', event.data);
@@ -65,9 +67,9 @@ const ChatLayout = () => {
   };
 
   const handleMessageSubmit = (content: string) => {
-    handleSendMessage(content);
+    sendMessage(content);
     if (isConnected) {
-      sendMessage({
+      sendWebSocketMessage({
         type: 'chat_message',
         content,
         userId,
@@ -115,7 +117,7 @@ const ChatLayout = () => {
                 <div className="md:col-span-3">
                   <Card className="p-4 shadow-sm bg-card">
                     <MessageList 
-                      messages={messages}
+                      messages={messages || []}
                       currentUserId={currentUser.id}
                     />
                     <MessageInput 
