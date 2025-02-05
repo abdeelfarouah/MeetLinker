@@ -53,9 +53,9 @@ const TranscriptionDisplay = ({
           transition={{ duration: 0.3 }}
           className="mt-4"
         >
-          <Card className="relative overflow-hidden bg-black border-2 border-primary/20">
+          <Card className="relative overflow-hidden bg-gray-100 border-2 border-primary/20">
             {/* Header avec contrôles */}
-            <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-background to-transparent p-4">
+            <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-gray-100 to-transparent p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <h3 className="font-semibold text-primary flex items-center gap-2">
@@ -109,7 +109,7 @@ const TranscriptionDisplay = ({
 
             {/* Overlay du bas avec bouton de défilement */}
             {!isNearBottom && (
-              <div className="absolute bottom-0 left-0 right-0 p-2 flex justify-center bg-gradient-to-t from-background to-transparent">
+              <div className="absolute bottom-0 left-0 right-0 p-2 flex justify-center bg-gradient-to-t from-gray-100 to-transparent">
                 <Button
                   variant="secondary"
                   size="sm"
