@@ -27,13 +27,11 @@ const ChatRoom = () => {
         console.log('Creating new room for user:', user.id);
         const { data: newRoom, error: createError } = await supabase
           .from('rooms')
-          .insert([
-            {
-              name: `Room ${new Date().toISOString()}`,
-              created_by: user.id,
-            },
-          ])
-          .select('id, name, created_by, created_at')
+          .insert({
+            name: `Room ${new Date().toISOString()}`,
+            created_by: user.id
+          })
+          .select()
           .single();
 
         if (createError) {
@@ -49,9 +47,9 @@ const ChatRoom = () => {
         console.log('Fetching existing room:', roomId);
         const { data: existingRoom, error: fetchError } = await supabase
           .from('rooms')
-          .select('id, name, created_by, created_at')
+          .select('*')
           .eq('id', roomId)
-          .maybeSingle();
+          .single();
 
         if (fetchError) {
           console.error('Error fetching room:', fetchError);
