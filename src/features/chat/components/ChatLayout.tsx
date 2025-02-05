@@ -12,8 +12,14 @@ import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 import { useWebSocketConnection } from '@/hooks/useWebSocketConnection';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import { faker } from '@faker-js/faker/locale/fr';
+import { Message, SupabaseMessage } from '@/types/chat';
 
-const ChatLayout = () => {
+interface ChatLayoutProps {
+  roomId: string;
+  userId: string;
+}
+
+const ChatLayout: React.FC<ChatLayoutProps> = ({ roomId, userId }) => {
   const {
     videoStream,
     screenStream,
@@ -32,7 +38,6 @@ const ChatLayout = () => {
   } = useSpeechRecognition();
 
   // Generate user data with a consistent avatar
-  const userId = faker.string.uuid();
   const avatarUrl = faker.image.avatar();
   const currentUser = {
     id: userId,
@@ -42,9 +47,19 @@ const ChatLayout = () => {
     status: 'online' as const
   };
 
-  // Updated to use roomId parameter
-  const roomId = 'default-room'; // You can make this dynamic based on your needs
-  const { messages, isLoading, sendMessage } = useMessages(roomId, userId);
+  const { messages: supabaseMessages, isLoading, sendMessage } = useMessages(roomId, userId);
+
+  // Transform Supabase messages to the Message type
+  const transformedMessages: Message[] = (supabaseMessages || []).map((msg: SupabaseMessage) => ({
+    id: msg.id,
+    content: msg.content,
+    sender: {
+      id: msg.user_id,
+      name: msg.profiles?.username || 'Unknown User',
+      avatar: msg.profiles?.avatar_url || avatarUrl,
+    },
+    timestamp: new Date(msg.created_at),
+  }));
 
   // Use the new WebSocket hook
   const { isConnected, sendMessage: sendWebSocketMessage } = useWebSocketConnection({
@@ -117,7 +132,7 @@ const ChatLayout = () => {
                 <div className="md:col-span-3">
                   <Card className="p-4 shadow-sm bg-card">
                     <MessageList 
-                      messages={messages || []}
+                      messages={transformedMessages}
                       currentUserId={currentUser.id}
                     />
                     <MessageInput 

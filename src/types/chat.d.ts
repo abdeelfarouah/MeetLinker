@@ -9,6 +9,18 @@ export interface Message {
   timestamp: Date;
 }
 
+export interface SupabaseMessage {
+  id: string;
+  content: string;
+  user_id: string;
+  room_id: string;
+  created_at: string;
+  profiles?: {
+    username: string;
+    avatar_url: string | null;
+  };
+}
+
 export interface Participant {
   id: string;
   name: string;
