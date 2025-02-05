@@ -9,8 +9,6 @@ import {
   Route, 
   Navigate, 
   useLocation,
-  createBrowserRouter,
-  RouterProvider
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import NotFound from "./pages/NotFound";
@@ -58,7 +56,7 @@ const PublicRoute = ({ children }: { children: JSX.Element }) => {
 const AppRoutes = () => {
   return (
     <>
-      <Routes future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <Routes>
         {/* Redirection par défaut vers la landing page */}
         <Route path="/" element={<Navigate to="/landing" replace />} />
         
