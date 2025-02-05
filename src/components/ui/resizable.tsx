@@ -1,45 +1,29 @@
+import * as React from "react"
 import { GripVertical } from "lucide-react"
 import * as ResizablePrimitive from "react-resizable-panels"
-import { useEffect, useRef } from "react"
 import { cn } from "@/lib/utils"
 
-const ResizablePanelGroup = ({
-  className,
-  ...props
-}: React.ComponentProps<typeof ResizablePrimitive.PanelGroup>) => (
-  <ResizablePrimitive.PanelGroup
-    className={cn(
-      "flex h-full w-full data-[panel-group-direction=vertical]:flex-col",
-      className
-    )}
-    {...props}
-  />
-)
+const ResizablePanel = React.forwardRef<
+  ResizablePrimitive.ImperativePanelHandle,
+  React.ComponentPropsWithoutRef<typeof ResizablePrimitive.Panel>
+>(({ className, ...props }, ref) => {
+  const panelRef = React.useRef<ResizablePrimitive.ImperativePanelHandle>(null);
 
-const ResizablePanel = ({ 
-  className,
-  ...props 
-}: React.ComponentProps<typeof ResizablePrimitive.Panel>) => {
-  const panelRef = useRef<ResizablePrimitive.ImperativePanelHandle>(null);
-
-  useEffect(() => {
-    // Debounce resize observations
+  React.useEffect(() => {
     const resizeObserver = new ResizeObserver((entries) => {
-      window.requestAnimationFrame(() => {
-        entries.forEach(() => {
-          // Handle resize if needed
-          if (panelRef.current) {
-            const size = panelRef.current.getSize();
-            console.log('Panel size changed:', size);
-          }
-        });
+      entries.forEach((entry) => {
+        const { width, height } = entry.contentRect;
+        console.log('Panel resized:', { width, height });
       });
     });
 
     // Get the DOM element from the panel's ref
-    const panel = document.getElementById(panelRef.current?.getId() || '');
-    if (panel) {
-      resizeObserver.observe(panel);
+    const panelId = panelRef.current?.getId();
+    if (panelId) {
+      const panel = document.getElementById(panelId);
+      if (panel) {
+        resizeObserver.observe(panel);
+      }
     }
 
     return () => {
@@ -49,12 +33,16 @@ const ResizablePanel = ({
 
   return (
     <ResizablePrimitive.Panel
-      className={cn("", className)}
-      {...props}
       ref={panelRef}
+      className={cn(
+        "flex w-full data-[panel-group-direction=vertical]:flex-col",
+        className
+      )}
+      {...props}
     />
-  );
-};
+  )
+})
+ResizablePanel.displayName = "ResizablePanel"
 
 const ResizableHandle = ({
   withHandle,
@@ -77,5 +65,6 @@ const ResizableHandle = ({
     )}
   </ResizablePrimitive.PanelResizeHandle>
 )
+ResizableHandle.displayName = "ResizableHandle"
 
-export { ResizablePanelGroup, ResizablePanel, ResizableHandle }
+export { ResizablePanel, ResizableHandle }

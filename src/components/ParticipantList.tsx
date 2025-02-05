@@ -18,7 +18,7 @@ const ParticipantList: React.FC<ParticipantListProps> = ({ participants }) => {
     <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg">
       <div className="flex items-center gap-2 mb-4">
         <Users className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-        <h2 className="font-bold text-lg text-gray-800 dark:text-white">Participants</h2>
+        <h2 className="font-bold text-lg text-gray-800 dark:text-white">Participants ({participants.length})</h2>
       </div>
       
       {participants.length > 0 ? (
