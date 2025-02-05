@@ -1,17 +1,17 @@
 import { createClient } from '@supabase/supabase-js';
-import type { Message, Profile, Room } from '../types/supabase';
+import type { Database } from '../types/supabase';
 
 const supabaseUrl = 'https://your-project-url.supabase.co';
 const supabaseKey = 'your-anon-key';
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+export const supabase = createClient<Database>(supabaseUrl, supabaseKey);
 
 export const getRoomMessages = async (roomId: string) => {
   const { data, error } = await supabase
     .from('messages')
     .select(`
       *,
-      profiles:user_id (
+      profiles (
         username,
         avatar_url
       )
@@ -42,7 +42,7 @@ export const sendMessage = async (content: string, roomId: string, userId: strin
 
 export const subscribeToMessages = (
   roomId: string,
-  callback: (message: Message) => void
+  callback: (message: Database['public']['Tables']['messages']['Row']) => void
 ) => {
   return supabase
     .channel(`room:${roomId}`)
@@ -55,7 +55,7 @@ export const subscribeToMessages = (
         filter: `room_id=eq.${roomId}`,
       },
       (payload) => {
-        callback(payload.new as Message);
+        callback(payload.new as Database['public']['Tables']['messages']['Row']);
       }
     )
     .subscribe();
