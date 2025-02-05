@@ -15,6 +15,7 @@ export const useWebSocketConnection = ({ url, onMessage, onError }: WebSocketCon
   const maxReconnectAttempts = 3;
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
   const isCleaningUpRef = useRef(false);
+  const hasInitializedRef = useRef(false);
 
   const handleConnectionError = useCallback((error: Event) => {
     console.error('[WebSocket] Connection error:', error);
@@ -25,24 +26,20 @@ export const useWebSocketConnection = ({ url, onMessage, onError }: WebSocketCon
   }, [onError]);
 
   const connect = useCallback(() => {
-    if (isCleaningUpRef.current) {
-      console.log('[WebSocket] Skipping connection attempt during cleanup');
+    if (isCleaningUpRef.current || hasInitializedRef.current) {
+      console.log('[WebSocket] Skipping connection attempt');
       return;
     }
 
     try {
-      // Reset connection error state
       setConnectionError(null);
-      
       console.log('[WebSocket] Attempting connection to:', url);
       
-      // Prevent multiple connection attempts
       if (wsRef.current?.readyState === WebSocket.CONNECTING) {
         console.log('[WebSocket] Connection already in progress');
         return;
       }
 
-      // Close existing connection if any
       if (wsRef.current) {
         console.log('[WebSocket] Closing existing connection');
         wsRef.current.close();
@@ -51,6 +48,7 @@ export const useWebSocketConnection = ({ url, onMessage, onError }: WebSocketCon
 
       const ws = new WebSocket(url);
       wsRef.current = ws;
+      hasInitializedRef.current = true;
 
       ws.onopen = () => {
         console.log('[WebSocket] Connected successfully');
@@ -63,12 +61,11 @@ export const useWebSocketConnection = ({ url, onMessage, onError }: WebSocketCon
       ws.onclose = (event) => {
         console.log('[WebSocket] Connection closed', event);
         setIsConnected(false);
+        hasInitializedRef.current = false;
         
-        // Only attempt reconnection if it wasn't a clean closure and we haven't reached max attempts
         if (!event.wasClean && !isCleaningUpRef.current && reconnectAttemptsRef.current < maxReconnectAttempts) {
           console.log(`[WebSocket] Attempting reconnect ${reconnectAttemptsRef.current + 1}/${maxReconnectAttempts}`);
           
-          // Clear any existing reconnect timeout
           if (reconnectTimeoutRef.current) {
             clearTimeout(reconnectTimeoutRef.current);
           }
@@ -86,11 +83,7 @@ export const useWebSocketConnection = ({ url, onMessage, onError }: WebSocketCon
       };
 
       ws.onerror = handleConnectionError;
-
-      ws.onmessage = (event) => {
-        console.log('[WebSocket] Message received:', event.data);
-        onMessage?.(event);
-      };
+      ws.onmessage = onMessage || (() => {});
     } catch (error) {
       console.error('[WebSocket] Error creating connection:', error);
       setConnectionError('Failed to create connection');
@@ -114,6 +107,7 @@ export const useWebSocketConnection = ({ url, onMessage, onError }: WebSocketCon
     return () => {
       console.log('[WebSocket] Cleaning up connection');
       isCleaningUpRef.current = true;
+      hasInitializedRef.current = false;
       
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);

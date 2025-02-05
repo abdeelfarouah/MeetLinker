@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 export const useMessages = (roomId: string, userId: string) => {
   const queryClient = useQueryClient();
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const subscriptionRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   // Fetch messages for the room
   const { data: messages, isLoading } = useQuery({
@@ -31,7 +32,7 @@ export const useMessages = (roomId: string, userId: string) => {
 
       return data;
     },
-    enabled: !!roomId, // Only run query if roomId exists
+    enabled: !!roomId,
   });
 
   // Send message mutation
@@ -68,8 +69,9 @@ export const useMessages = (roomId: string, userId: string) => {
 
   // Subscribe to real-time updates
   useEffect(() => {
-    if (!isSubscribed && roomId) {
-      console.log('Subscribing to messages for room:', roomId);
+    if (!isSubscribed && roomId && !subscriptionRef.current) {
+      console.log('Setting up subscription for room:', roomId);
+      
       const channel = supabase
         .channel(`room-${roomId}`)
         .on(
@@ -87,12 +89,16 @@ export const useMessages = (roomId: string, userId: string) => {
         )
         .subscribe();
 
+      subscriptionRef.current = channel;
       setIsSubscribed(true);
 
       return () => {
-        console.log('Unsubscribing from messages');
-        supabase.removeChannel(channel);
-        setIsSubscribed(false);
+        console.log('Cleaning up subscription for room:', roomId);
+        if (subscriptionRef.current) {
+          supabase.removeChannel(subscriptionRef.current);
+          subscriptionRef.current = null;
+          setIsSubscribed(false);
+        }
       };
     }
   }, [roomId, queryClient, isSubscribed]);
