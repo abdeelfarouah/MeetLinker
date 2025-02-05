@@ -25,7 +25,8 @@ const queryClient = new QueryClient();
 
 const ChatUIWrapper = () => {
   const location = useLocation();
-  const shouldShowChatUI = location.pathname.includes('/pre-entrance');
+  // Modifier la condition pour n'afficher ChatUI que dans la salle de chat
+  const shouldShowChatUI = location.pathname.includes('/chat/') && !location.pathname.includes('/pre-entrance');
   
   console.log('Current route:', location.pathname, 'Should show ChatUI:', shouldShowChatUI);
   
