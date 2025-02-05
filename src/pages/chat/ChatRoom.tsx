@@ -31,7 +31,7 @@ const ChatRoom = () => {
     clearTranscript
   } = useSpeechRecognition();
 
-  // Générer des données utilisateur factices avec un avatar cohérent
+  // Generate user data with a consistent avatar
   const userId = faker.string.uuid();
   const avatarUrl = faker.image.avatar();
   const currentUser = {
@@ -42,17 +42,15 @@ const ChatRoom = () => {
     status: 'online' as const
   };
 
-  const { messages, handleSendMessage } = useMessages(currentUser.name);
+  const { messages, handleSendMessage } = useMessages(currentUser.name, currentUser.id, currentUser.avatar);
 
-  // Utilisation du nouveau hook WebSocket
   const { isConnected, sendMessage } = useWebSocketConnection({
     url: `wss://${window.location.hostname}`,
     onMessage: (event) => {
-      console.log('Message reçu:', event.data);
-      // Traiter le message reçu si nécessaire
+      console.log('Message received:', event.data);
     },
     onError: (error) => {
-      console.error('Erreur WebSocket:', error);
+      console.error('WebSocket error:', error);
     }
   });
 
@@ -65,7 +63,6 @@ const ChatRoom = () => {
     }
   };
 
-  // Envoyer un message via WebSocket
   const handleMessageSubmit = (content: string) => {
     handleSendMessage(content);
     if (isConnected) {
@@ -77,8 +74,6 @@ const ChatRoom = () => {
       });
     }
   };
-
-  console.log('État de la transcription:', { isRecording, transcript });
 
   return (
     <div className="min-h-screen bg-background p-4 space-y-4">
@@ -120,7 +115,7 @@ const ChatRoom = () => {
                   <Card className="p-4 shadow-sm bg-card">
                     <MessageList 
                       messages={messages}
-                      currentUser={currentUser}
+                      currentUserId={currentUser.id}
                     />
                     <MessageInput 
                       onSendMessage={handleMessageSubmit}

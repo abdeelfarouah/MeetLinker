@@ -42,14 +42,13 @@ const ChatLayout = () => {
     status: 'online' as const
   };
 
-  const { messages, handleSendMessage } = useMessages(currentUser.name);
+  const { messages, handleSendMessage } = useMessages(currentUser.name, currentUser.id, currentUser.avatar);
 
   // Use the new WebSocket hook
   const { isConnected, sendMessage } = useWebSocketConnection({
     url: `wss://${window.location.hostname}`,
     onMessage: (event) => {
       console.log('Message received:', event.data);
-      // Handle received message if necessary
     },
     onError: (error) => {
       console.error('WebSocket error:', error);
@@ -65,7 +64,6 @@ const ChatLayout = () => {
     }
   };
 
-  // Send a message via WebSocket
   const handleMessageSubmit = (content: string) => {
     handleSendMessage(content);
     if (isConnected) {
@@ -118,7 +116,7 @@ const ChatLayout = () => {
                   <Card className="p-4 shadow-sm bg-card">
                     <MessageList 
                       messages={messages}
-                      currentUser={currentUser}
+                      currentUserId={currentUser.id}
                     />
                     <MessageInput 
                       onSendMessage={handleMessageSubmit}

@@ -3,7 +3,7 @@ import { toast } from 'sonner';
 import { encryptMessage } from '@/utils/crypto';
 import type { Message } from '@/types/chat';
 
-export const useMessages = (currentUserName: string) => {
+export const useMessages = (currentUserName: string, userId: string, avatarUrl: string) => {
   const [messages, setMessages] = useState<Message[]>([]);
 
   const handleSendMessage = (content: string) => {
@@ -12,7 +12,11 @@ export const useMessages = (currentUserName: string) => {
       const newMessage: Message = {
         id: Date.now().toString(),
         content: encryptedContent,
-        sender: currentUserName,
+        sender: {
+          id: userId,
+          name: currentUserName,
+          avatar: avatarUrl
+        },
         timestamp: new Date()
       };
       
