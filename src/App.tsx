@@ -17,19 +17,8 @@ import Register from "./pages/auth/Register";
 import ChatRoom from "./pages/chat/ChatRoom";
 import PreEntranceCheck from "./pages/chat/PreEntranceCheck";
 import LandingPage from "./pages/LandingPage";
-import ChatUI from '@/features/chat/components/ChatUI';
 
 const queryClient = new QueryClient();
-
-const ChatUIWrapper = () => {
-  const location = useLocation();
-  // Modifier la condition pour n'afficher ChatUI que dans la salle de chat
-  const shouldShowChatUI = location.pathname.includes('/chat/') && !location.pathname.includes('/pre-entrance');
-  
-  console.log('Current route:', location.pathname, 'Should show ChatUI:', shouldShowChatUI);
-  
-  return shouldShowChatUI ? <ChatUI /> : null;
-};
 
 // Route guard for protected routes
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
@@ -94,7 +83,6 @@ const AppRoutes = () => {
         />
         <Route path="*" element={<NotFound />} />
       </Routes>
-      <ChatUIWrapper />
       <Toaster />
       <Sonner />
     </>
