@@ -1,5 +1,4 @@
 import React from 'react';
-import { faker } from '@faker-js/faker/locale/fr';
 import { Card } from "@/components/ui/card";
 import VideoStreamsDisplay from '@/features/chat/components/VideoStreamsDisplay';
 import MessageList from '@/features/chat/components/MessageList';
@@ -12,8 +11,9 @@ import { useMessages } from '@/hooks/useMessages';
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 import { useWebSocketConnection } from '@/hooks/useWebSocketConnection';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
+import { faker } from '@faker-js/faker/locale/fr';
 
-const ChatRoom = () => {
+const ChatLayout = () => {
   const {
     videoStream,
     screenStream,
@@ -31,7 +31,7 @@ const ChatRoom = () => {
     clearTranscript
   } = useSpeechRecognition();
 
-  // Générer des données utilisateur factices avec un avatar cohérent
+  // Generate user data with a consistent avatar
   const userId = faker.string.uuid();
   const avatarUrl = faker.image.avatar();
   const currentUser = {
@@ -44,15 +44,15 @@ const ChatRoom = () => {
 
   const { messages, handleSendMessage } = useMessages(currentUser.name);
 
-  // Utilisation du nouveau hook WebSocket
+  // Use the new WebSocket hook
   const { isConnected, sendMessage } = useWebSocketConnection({
     url: `wss://${window.location.hostname}`,
     onMessage: (event) => {
-      console.log('Message reçu:', event.data);
-      // Traiter le message reçu si nécessaire
+      console.log('Message received:', event.data);
+      // Handle received message if necessary
     },
     onError: (error) => {
-      console.error('Erreur WebSocket:', error);
+      console.error('WebSocket error:', error);
     }
   });
 
@@ -65,7 +65,7 @@ const ChatRoom = () => {
     }
   };
 
-  // Envoyer un message via WebSocket
+  // Send a message via WebSocket
   const handleMessageSubmit = (content: string) => {
     handleSendMessage(content);
     if (isConnected) {
@@ -77,8 +77,6 @@ const ChatRoom = () => {
       });
     }
   };
-
-  console.log('État de la transcription:', { isRecording, transcript });
 
   return (
     <div className="min-h-screen bg-background p-4 space-y-4">
@@ -136,4 +134,4 @@ const ChatRoom = () => {
   );
 };
 
-export default ChatRoom;
+export default ChatLayout;
