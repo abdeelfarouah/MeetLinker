@@ -8,7 +8,7 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  isAuthenticated: boolean;  // Added this property
+  isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, username: string) => Promise<void>;
   logout: () => void;
@@ -19,7 +19,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
 
-  // Simuler la persistance de la session
+  // Simulate session persistence
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
@@ -28,10 +28,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const login = async (email: string, password: string) => {
-    // Simulation d'une API d'authentification
-    console.log("Tentative de connexion:", { email, password });
+    // Simulate authentication API
+    console.log("Attempting login:", { email, password });
     const mockUser = {
-      id: "1",
+      id: "d7bed21c-5a38-4c44-9d25-5ca0527ee533", // Using a valid UUID format
       email,
       username: email.split("@")[0],
     };
@@ -40,10 +40,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const register = async (email: string, password: string, username: string) => {
-    // Simulation d'une API d'inscription
-    console.log("Tentative d'inscription:", { email, password, username });
+    // Simulate registration API
+    console.log("Attempting registration:", { email, password, username });
     const mockUser = {
-      id: "1",
+      id: "d7bed21c-5a38-4c44-9d25-5ca0527ee533", // Using a valid UUID format
       email,
       username,
     };
@@ -62,7 +62,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       login, 
       register, 
       logout,
-      isAuthenticated: !!user  // Added this property
+      isAuthenticated: !!user
     }}>
       {children}
     </AuthContext.Provider>
