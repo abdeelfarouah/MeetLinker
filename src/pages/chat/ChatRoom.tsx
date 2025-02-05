@@ -11,15 +11,20 @@ const ChatRoom = () => {
   const { roomId } = useParams();
   const { user } = useAuth();
 
+  console.log('ChatRoom - Current user:', user);
+  console.log('ChatRoom - Room ID:', roomId);
+
   // Fetch or create room
   const { data: room, isLoading: isRoomLoading } = useQuery({
     queryKey: ['room', roomId],
     queryFn: async () => {
-      if (!user) throw new Error('User not authenticated');
+      if (!user) {
+        console.error('No user found');
+        throw new Error('User not authenticated');
+      }
 
       if (roomId === 'new') {
-        // Create a new room
-        console.log('Creating new room');
+        console.log('Creating new room for user:', user.id);
         const { data: newRoom, error: createError } = await supabase
           .from('rooms')
           .insert([
@@ -28,7 +33,7 @@ const ChatRoom = () => {
               created_by: user.id,
             },
           ])
-          .select()
+          .select('id, name, created_by, created_at')
           .single();
 
         if (createError) {
@@ -37,15 +42,14 @@ const ChatRoom = () => {
           throw createError;
         }
 
-        // Redirect to the new room
+        console.log('New room created:', newRoom);
         navigate(`/chat/${newRoom.id}`, { replace: true });
         return newRoom;
       } else {
-        // Fetch existing room
-        console.log('Fetching room:', roomId);
+        console.log('Fetching existing room:', roomId);
         const { data: existingRoom, error: fetchError } = await supabase
           .from('rooms')
-          .select('*')
+          .select('id, name, created_by, created_at')
           .eq('id', roomId)
           .maybeSingle();
 
@@ -56,11 +60,13 @@ const ChatRoom = () => {
         }
 
         if (!existingRoom) {
+          console.log('Room not found, redirecting to new room');
           toast.error('Room not found');
           navigate('/chat/new', { replace: true });
           return null;
         }
 
+        console.log('Existing room found:', existingRoom);
         return existingRoom;
       }
     },
