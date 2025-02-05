@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -17,6 +16,7 @@ import Register from "./pages/auth/Register";
 import ChatRoom from "./pages/chat/ChatRoom";
 import PreEntranceCheck from "./pages/chat/PreEntranceCheck";
 import LandingPage from "./pages/LandingPage";
+import TestData from "./pages/TestData";
 
 const queryClient = new QueryClient();
 
@@ -51,6 +51,9 @@ const AppRoutes = () => {
         
         {/* Landing page accessible à tous */}
         <Route path="/landing" element={<LandingPage />} />
+        
+        {/* Test Data Page */}
+        <Route path="/test" element={<TestData />} />
         
         {/* Routes d'authentification */}
         <Route path="/auth/login" element={<PublicRoute><Login /></PublicRoute>} />
