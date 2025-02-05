@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,6 +15,8 @@ const ChatRoom = () => {
   const { data: room, isLoading: isRoomLoading } = useQuery({
     queryKey: ['room', roomId],
     queryFn: async () => {
+      if (!user) throw new Error('User not authenticated');
+
       if (roomId === 'new') {
         // Create a new room
         console.log('Creating new room');
@@ -23,7 +25,7 @@ const ChatRoom = () => {
           .insert([
             {
               name: `Room ${new Date().toISOString()}`,
-              created_by: user?.id,
+              created_by: user.id,
             },
           ])
           .select()
@@ -45,12 +47,18 @@ const ChatRoom = () => {
           .from('rooms')
           .select('*')
           .eq('id', roomId)
-          .single();
+          .maybeSingle();
 
         if (fetchError) {
           console.error('Error fetching room:', fetchError);
           toast.error('Failed to fetch room');
           throw fetchError;
+        }
+
+        if (!existingRoom) {
+          toast.error('Room not found');
+          navigate('/chat/new', { replace: true });
+          return null;
         }
 
         return existingRoom;
@@ -67,9 +75,13 @@ const ChatRoom = () => {
     return <div>Loading room...</div>;
   }
 
+  if (!room) {
+    return null;
+  }
+
   return (
     <ChatLayout 
-      roomId={room?.id || ''} 
+      roomId={room.id} 
       userId={user.id} 
     />
   );
