@@ -1,6 +1,6 @@
 import { GripVertical } from "lucide-react"
 import * as ResizablePrimitive from "react-resizable-panels"
-
+import { useEffect, useRef } from "react"
 import { cn } from "@/lib/utils"
 
 const ResizablePanelGroup = ({
@@ -16,7 +16,39 @@ const ResizablePanelGroup = ({
   />
 )
 
-const ResizablePanel = ResizablePrimitive.Panel
+const ResizablePanel = ({ 
+  className,
+  ...props 
+}: React.ComponentProps<typeof ResizablePrimitive.Panel>) => {
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Debounce resize observations
+    const resizeObserver = new ResizeObserver((entries) => {
+      window.requestAnimationFrame(() => {
+        entries.forEach(() => {
+          // Handle resize if needed
+        });
+      });
+    });
+
+    if (panelRef.current) {
+      resizeObserver.observe(panelRef.current);
+    }
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
+
+  return (
+    <ResizablePrimitive.Panel
+      className={cn("", className)}
+      {...props}
+      ref={panelRef}
+    />
+  );
+};
 
 const ResizableHandle = ({
   withHandle,
