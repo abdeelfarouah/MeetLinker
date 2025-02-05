@@ -20,7 +20,7 @@ const ResizablePanel = ({
   className,
   ...props 
 }: React.ComponentProps<typeof ResizablePrimitive.Panel>) => {
-  const panelRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<ResizablePrimitive.ImperativePanelHandle>(null);
 
   useEffect(() => {
     // Debounce resize observations
@@ -28,12 +28,17 @@ const ResizablePanel = ({
       window.requestAnimationFrame(() => {
         entries.forEach(() => {
           // Handle resize if needed
+          if (panelRef.current) {
+            const size = panelRef.current.getSize();
+            console.log('Panel size changed:', size);
+          }
         });
       });
     });
 
-    if (panelRef.current) {
-      resizeObserver.observe(panelRef.current);
+    const element = panelRef.current?.element;
+    if (element) {
+      resizeObserver.observe(element);
     }
 
     return () => {
