@@ -36,9 +36,10 @@ const ResizablePanel = ({
       });
     });
 
-    const element = panelRef.current?.element;
-    if (element) {
-      resizeObserver.observe(element);
+    // Get the DOM element from the panel's ref
+    const panel = document.getElementById(panelRef.current?.getId() || '');
+    if (panel) {
+      resizeObserver.observe(panel);
     }
 
     return () => {
