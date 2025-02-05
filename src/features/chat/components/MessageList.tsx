@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -22,6 +21,11 @@ interface MessageListProps {
   currentUser: User;
 }
 
+// Generate a consistent avatar URL using Lovable's avatar service
+const generateAvatar = (userId: string) => {
+  return `https://lovable.dev/projects/c5605084-a0d7-49c9-ae7d-b58e254dc0bc`;
+};
+
 const MessageList = ({ messages, currentUser }: MessageListProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   
@@ -37,6 +41,7 @@ const MessageList = ({ messages, currentUser }: MessageListProps) => {
         {messages.map((msg) => {
           const isCurrentUser = msg.sender === currentUser.name;
           const decryptedContent = decryptMessage(msg.content);
+          const avatarUrl = generateAvatar(isCurrentUser ? currentUser.id : msg.id);
           
           return (
             <div
@@ -46,7 +51,7 @@ const MessageList = ({ messages, currentUser }: MessageListProps) => {
               }`}
             >
               <Avatar>
-                <AvatarImage src={currentUser.avatar} />
+                <AvatarImage src={avatarUrl} />
                 <AvatarFallback>{msg.sender[0].toUpperCase()}</AvatarFallback>
               </Avatar>
               
