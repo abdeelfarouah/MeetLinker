@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Card } from "@/components/ui/card";
 import VideoStreamsDisplay from '@/features/chat/components/VideoStreamsDisplay';
 import MessageList from '@/features/chat/components/MessageList';
@@ -20,6 +20,7 @@ interface ChatLayoutProps {
 }
 
 const ChatLayout: React.FC<ChatLayoutProps> = ({ roomId, userId }) => {
+  const layoutRef = useRef<HTMLDivElement>(null);
   const {
     videoStream,
     screenStream,
@@ -61,7 +62,7 @@ const ChatLayout: React.FC<ChatLayoutProps> = ({ roomId, userId }) => {
     timestamp: new Date(msg.created_at),
   }));
 
-  // Use the new WebSocket hook
+  // Use the WebSocket hook with debounced resize handling
   const { isConnected, sendMessage: sendWebSocketMessage } = useWebSocketConnection({
     url: `wss://${window.location.hostname}`,
     onMessage: (event) => {
@@ -93,8 +94,34 @@ const ChatLayout: React.FC<ChatLayoutProps> = ({ roomId, userId }) => {
     }
   };
 
+  // Use ResizeObserver with debouncing
+  useEffect(() => {
+    if (!layoutRef.current) return;
+
+    let timeoutId: NodeJS.Timeout;
+    const resizeObserver = new ResizeObserver((entries) => {
+      // Debounce resize operations
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        for (const entry of entries) {
+          if (entry.target === layoutRef.current) {
+            // Handle resize if needed
+            console.log('Layout resized');
+          }
+        }
+      }, 100); // 100ms debounce
+    });
+
+    resizeObserver.observe(layoutRef.current);
+
+    return () => {
+      clearTimeout(timeoutId);
+      resizeObserver.disconnect();
+    };
+  }, []);
+
   return (
-    <div className="min-h-screen bg-background p-4 space-y-4">
+    <div ref={layoutRef} className="min-h-screen bg-background p-4 space-y-4">
       <div className="max-w-7xl mx-auto">
         <Card className="p-6 shadow-none bg-background">
           <div className="grid grid-cols-1 gap-6">
