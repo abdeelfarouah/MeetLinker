@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Smile } from "lucide-react";
+import { Smile, Send } from "lucide-react";
 import data from '@emoji-mart/data'
 import Picker from '@emoji-mart/react'
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -19,6 +19,10 @@ const MessageInput = ({ onSendMessage }: MessageInputProps) => {
       onSendMessage(message);
       setMessage("");
     }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setMessage(e.target.value);
   };
 
   const addEmoji = (emoji: any) => {
@@ -45,12 +49,15 @@ const MessageInput = ({ onSendMessage }: MessageInputProps) => {
         </Popover>
         <Input
           value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          placeholder="Écrivez votre message..."
+          onChange={handleInputChange}
+          placeholder="Write your message..."
           className="flex-1"
         />
       </div>
-      <Button type="submit">Envoyer</Button>
+      <Button type="submit">
+        <Send className="h-4 w-4 mr-2" />
+        Send
+      </Button>
     </form>
   );
 };
