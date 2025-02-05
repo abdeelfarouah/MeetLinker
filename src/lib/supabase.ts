@@ -60,3 +60,44 @@ export const subscribeToMessages = (
     )
     .subscribe();
 };
+
+export const createRoom = async (name: string, userId: string) => {
+  const { data, error } = await supabase
+    .from('rooms')
+    .insert([
+      {
+        name,
+        created_by: userId,
+      },
+    ])
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+};
+
+export const getRooms = async () => {
+  const { data, error } = await supabase
+    .from('rooms')
+    .select(`
+      *,
+      profiles (
+        username,
+        avatar_url
+      )
+    `)
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data;
+};
+
+export const updateProfile = async (userId: string, updates: { username?: string; avatar_url?: string }) => {
+  const { error } = await supabase
+    .from('profiles')
+    .update(updates)
+    .eq('id', userId);
+
+  if (error) throw error;
+};
