@@ -1,21 +1,36 @@
-import { useEffect, useState } from 'react';
+import { ReactNode, useCallback, useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { insertTestData } from '@/utils/supabaseTestData';
 import { supabase } from '@/lib/supabase';
 
+interface Profile {
+  id: string;
+  username: string;
+  // Add other profile fields as needed
+}
+
+interface Room {
+  created_by: ReactNode;
+  id: string;
+  name: string;
+  // Add other room fields as needed
+}
+
+interface Message {
+  roomId: ReactNode;
+  id: string;
+  content: string;
+  // Add other message fields as needed
+}
+
 const TestData = () => {
   const { toast } = useToast();
-  const [profiles, setProfiles] = useState<any[]>([]);
-  const [rooms, setRooms] = useState<any[]>([]);
-  const [messages, setMessages] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const fetchData = async () => {
-    console.log('Fetching current data...');
-    try {
-      const { data: profilesData, error: profilesError } = await supabase
+  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
+Based on the lint error shown in the context, the issue is that `useCallback` is missing its dependency array. Here's the fixed version:
         .from('profiles')
         .select('*');
       if (profilesError) throw profilesError;
@@ -47,7 +62,7 @@ const TestData = () => {
         description: "Failed to fetch current data",
       });
     }
-  };
+  });
 
   const handleInsertTestData = async () => {
     setIsLoading(true);
@@ -72,7 +87,7 @@ const TestData = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   return (
     <div className="container mx-auto p-4 space-y-6">
@@ -118,7 +133,7 @@ const TestData = () => {
               <div key={message.id} className="p-2 bg-muted rounded">
                 <p>{message.content}</p>
                 <p className="text-sm text-muted-foreground">
-                  Room: {message.room_id}
+                  Room: {message.roomId}
                 </p>
               </div>
             ))}

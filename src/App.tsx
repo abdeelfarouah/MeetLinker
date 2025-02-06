@@ -55,7 +55,7 @@ const AppRoutes = () => {
         {/* Test Data Page */}
         <Route path="/test" element={<TestData />} />
         
-        {/* Routes d'authentification */}
+        {/* Authentication Routes */}
         <Route path="/auth/login" element={<PublicRoute><Login /></PublicRoute>} />
         <Route path="/auth/register" element={<PublicRoute><Register /></PublicRoute>} />
         
